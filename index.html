@@ -1175,5 +1175,140 @@
   <div class="footer-right">© 2026 ShelterIQ · Data Platform for Animal Shelters · New York City</div>
 </footer>
 
+<!-- CHATBOT WIDGET (rule-based, client-side only — no API keys) -->
+<style>
+#siq-chat-toggle{
+  position:fixed; right:22px; bottom:22px; z-index:999;
+  width:58px; height:58px; border-radius:50%; border:none; cursor:pointer;
+  background:var(--terracotta); color:white; font-size:26px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 20px rgba(199,91,58,0.4); transition:transform 0.2s ease;
+}
+#siq-chat-toggle:hover{ transform:scale(1.06); background:var(--terracotta-light); }
+#siq-chat-panel{
+  position:fixed; right:22px; bottom:90px; z-index:999;
+  width:340px; max-width:calc(100vw - 44px); height:460px; max-height:calc(100vh - 140px);
+  background:var(--cream); border:0.5px solid var(--border-strong); border-radius:16px;
+  box-shadow:0 12px 40px rgba(61,28,14,0.25);
+  display:none; flex-direction:column; overflow:hidden;
+  font-family:'DM Sans', sans-serif;
+}
+#siq-chat-panel.open{ display:flex; }
+#siq-chat-head{
+  background:var(--terracotta); color:white; padding:14px 16px;
+  display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+}
+#siq-chat-head-title{ font-family:'DM Serif Display', serif; font-size:16px; }
+#siq-chat-head-sub{ font-size:11px; opacity:0.85; margin-top:1px; }
+#siq-chat-close{ background:none; border:none; color:white; font-size:18px; cursor:pointer; line-height:1; padding:4px; }
+#siq-chat-body{ flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; }
+.siq-msg{ max-width:85%; padding:9px 12px; border-radius:14px; font-size:13px; line-height:1.45; }
+.siq-msg.bot{ background:white; border:0.5px solid var(--border-strong); color:var(--text-dark); align-self:flex-start; border-bottom-left-radius:4px; }
+.siq-msg.user{ background:var(--terracotta); color:white; align-self:flex-end; border-bottom-right-radius:4px; }
+.siq-msg a{ color:var(--terracotta); font-weight:600; }
+.siq-msg.bot a{ color:var(--terracotta); }
+#siq-chat-quick{ display:flex; flex-wrap:wrap; gap:6px; padding:0 14px 10px; flex-shrink:0; }
+.siq-chip{
+  background:rgba(199,91,58,0.08); border:0.5px solid var(--border-strong); color:var(--terracotta);
+  border-radius:20px; padding:5px 11px; font-size:11px; font-weight:500; cursor:pointer; transition:all 0.15s;
+}
+.siq-chip:hover{ background:var(--terracotta); color:white; }
+#siq-chat-input-row{ display:flex; gap:8px; padding:12px; border-top:0.5px solid var(--border-strong); flex-shrink:0; background:white; }
+#siq-chat-input{
+  flex:1; border:0.5px solid var(--border-strong); border-radius:20px; padding:9px 14px;
+  font-size:13px; font-family:'DM Sans',sans-serif; outline:none; background:var(--cream); color:var(--text-dark);
+}
+#siq-chat-input:focus{ border-color:var(--terracotta); }
+#siq-chat-send{
+  background:var(--terracotta); color:white; border:none; border-radius:50%;
+  width:36px; height:36px; cursor:pointer; flex-shrink:0; font-size:15px;
+}
+#siq-chat-send:hover{ background:var(--terracotta-light); }
+@media(max-width:480px){
+  #siq-chat-panel{ right:12px; bottom:82px; }
+  #siq-chat-toggle{ right:14px; bottom:14px; }
+}
+</style>
+
+<button id="siq-chat-toggle" aria-label="Open ShelterIQ assistant" onclick="siqToggleChat()">💬</button>
+
+<div id="siq-chat-panel">
+  <div id="siq-chat-head">
+    <div>
+      <div id="siq-chat-head-title">ShelterIQ Assistant</div>
+      <div id="siq-chat-head-sub">Ask me about the data, tools, or team</div>
+    </div>
+    <button id="siq-chat-close" onclick="siqToggleChat()">✕</button>
+  </div>
+  <div id="siq-chat-body"></div>
+  <div id="siq-chat-quick"></div>
+  <div id="siq-chat-input-row">
+    <input id="siq-chat-input" type="text" placeholder="Type a question…" onkeydown="if(event.key==='Enter')siqSend()">
+    <button id="siq-chat-send" onclick="siqSend()">➤</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var SIQ_FAQ = [
+    { k: ['risk','predict','predictor','euthan'], a: 'The <strong>Risk Predictor</strong> flags animals at higher risk based on intake data. <a href="risk.html">Open Risk Predictor →</a>' },
+    { k: ['adopt','match','matcher'], a: 'The <strong>Adoption Matcher</strong> helps pair animals with likely adopters. <a href="adopt.html">Open Adoption Matcher →</a>' },
+    { k: ['dashboard','kpi','overview','leadership'], a: 'The <strong>Leadership Dashboard</strong> shows live release rate, intake, and shelter performance. <a href="dashboard.html">Open Dashboard →</a>' },
+    { k: ['forecast','projection','season','future'], a: 'The <strong>Forecasting</strong> page projects intake 12 months ahead using seasonal decomposition. <a href="forecast.html">Open Forecasting →</a>' },
+    { k: ['data','dataset','source','nyc','acc'], a: 'ShelterIQ is built on ACC NYC intake/outcome data: <strong>89,865 animals, 2017–2023</strong>, across all 5 boroughs.' },
+    { k: ['team','who','mona','roy','claudio','founder'], a: 'Meet the team — Roy (Founder & Strategy), Mona (Lead Data Scientist & ML Engineer), and Claudio (Data Scientist). <a href="#team">See the Team →</a>' },
+    { k: ['contact','email','reach','touch'], a: 'You can reach the team at <a href="mailto:mona.hatami@shelteriq.org">mona.hatami@shelteriq.org</a>, or use the <a href="#contact">contact section →</a>' },
+    { k: ['hi','hello','hey'], a: 'Hi! 👋 Ask me about the Risk Predictor, Adoption Matcher, Dashboard, Forecasting, our data, or the team.' },
+  ];
+  var SIQ_FALLBACK = "I'm not sure about that one — try asking about the Risk Predictor, Adoption Matcher, Dashboard, Forecasting, the dataset, or the team.";
+  var SIQ_QUICK = ['Risk Predictor', 'Dashboard', 'The data', 'Meet the team'];
+
+  function siqAnswer(text){
+    var t = text.toLowerCase();
+    for (var i=0;i<SIQ_FAQ.length;i++){
+      for (var j=0;j<SIQ_FAQ[i].k.length;j++){
+        if (t.indexOf(SIQ_FAQ[i].k[j]) !== -1) return SIQ_FAQ[i].a;
+      }
+    }
+    return SIQ_FALLBACK;
+  }
+
+  function siqAppend(text, who){
+    var body = document.getElementById('siq-chat-body');
+    var div = document.createElement('div');
+    div.className = 'siq-msg ' + who;
+    div.innerHTML = text;
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  window.siqSend = function(fromQuick){
+    var input = document.getElementById('siq-chat-input');
+    var text = fromQuick || input.value.trim();
+    if (!text) return;
+    siqAppend(text.replace(/</g,'&lt;'), 'user');
+    input.value = '';
+    setTimeout(function(){ siqAppend(siqAnswer(text), 'bot'); }, 300);
+  };
+
+  window.siqToggleChat = function(){
+    var panel = document.getElementById('siq-chat-panel');
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open') && !panel.dataset.inited){
+      panel.dataset.inited = '1';
+      siqAppend("Hi! I'm the ShelterIQ assistant. Ask me about the Risk Predictor, Adoption Matcher, Dashboard, Forecasting, the data, or the team.", 'bot');
+      var quick = document.getElementById('siq-chat-quick');
+      SIQ_QUICK.forEach(function(q){
+        var chip = document.createElement('span');
+        chip.className = 'siq-chip';
+        chip.textContent = q;
+        chip.onclick = function(){ siqSend(q); };
+        quick.appendChild(chip);
+      });
+    }
+  };
+})();
+</script>
+
 </body>
 </html>
