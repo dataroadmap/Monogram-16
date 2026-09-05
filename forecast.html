@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShelterIQ — Intake Forecasting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --terracotta:#C75B3A;--terracotta-light:#E8724A;--peach:#F4956E;
+  --gold:#F4C97A;--cream:#FFFAF7;--dark-brown:#3D1C0E;
+  --text-dark:#1A0A04;--text-muted:#8C6050;
+  --border:rgba(199,91,58,0.15);--border-strong:rgba(199,91,58,0.3);
+  --green:#15803D;--green-light:#F0FDF4;--green-mid:#BBF7D0;
+  --amber:#B45309;--amber-light:#FFFBEB;
+  --red:#B91C1C;--red-light:#FEF2F2;
+  --blue:#1D4ED8;--blue-light:#EFF6FF;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-dark);font-size:14px;line-height:1.6}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,250,247,0.95);backdrop-filter:blur(12px);border-bottom:0.5px solid var(--border-strong);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.nav-logo-text{font-family:'DM Serif Display',serif;font-size:19px;color:var(--terracotta)}
+.nav-links{display:flex;gap:1.5rem;list-style:none}
+.nav-links a{text-decoration:none;color:var(--text-muted);font-size:13px;font-weight:500;transition:color 0.2s}
+.nav-links a:hover{color:var(--terracotta)}
+.nav-cta{background:var(--terracotta)!important;color:white!important;padding:7px 18px;border-radius:100px}
+.nav-badge{font-size:10px;font-weight:600;letter-spacing:0.06em;background:rgba(199,91,58,0.1);color:var(--terracotta);padding:3px 10px;border-radius:20px;border:0.5px solid var(--border-strong)}
+
+.page-wrap{max-width:1200px;margin:0 auto;padding:80px 2rem 4rem}
+
+.dash-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
+.dash-title{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--dark-brown);letter-spacing:-0.02em}
+.dash-title em{font-style:italic;color:var(--terracotta)}
+.dash-sub{font-size:13px;color:var(--text-muted);font-weight:300;margin-top:4px}
+.dash-controls{display:flex;gap:8px;flex-wrap:wrap}
+.ctrl-btn{padding:7px 16px;border-radius:100px;border:0.5px solid var(--border-strong);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;background:white;color:var(--text-muted);font-family:'DM Sans',sans-serif}
+.ctrl-btn.active{background:var(--terracotta);color:white;border-color:var(--terracotta)}
+.ctrl-btn:hover:not(.active){color:var(--terracotta)}
+
+.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:white;border:0.5px solid var(--border-strong);border-radius:14px;padding:1.1rem 1.3rem;box-shadow:0 1px 6px rgba(199,91,58,0.05);animation:fadeUp 0.3s ease forwards}
+.kpi-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:5px}
+.kpi-num{font-family:'DM Serif Display',serif;font-size:1.9rem;line-height:1;margin-bottom:3px}
+.kpi-num.red{color:var(--red)}.kpi-num.green{color:var(--green)}.kpi-num.amber{color:var(--amber)}.kpi-num.blue{color:var(--blue)}
+.kpi-sub{font-size:11px;color:var(--text-muted);font-weight:300}
+.kpi-trend{font-size:11px;font-weight:600;margin-top:3px}
+.up{color:var(--red)}.down{color:var(--green)}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.full{margin-bottom:12px}
+
+.chart-card{background:white;border:0.5px solid var(--border-strong);border-radius:14px;padding:1.3rem;box-shadow:0 1px 6px rgba(199,91,58,0.05)}
+.card-title{font-family:'DM Serif Display',serif;font-size:1rem;color:var(--dark-brown);margin-bottom:3px}
+.card-sub{font-size:11px;color:var(--text-muted);font-weight:300;margin-bottom:1rem}
+.chart-wrap{position:relative}
+
+/* Shelter selector */
+.sh-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.sh-pill{padding:5px 12px;border-radius:20px;border:0.5px solid var(--border-strong);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s;background:var(--cream);color:var(--text-muted)}
+.sh-pill.active{background:var(--terracotta);color:white;border-color:var(--terracotta)}
+.sh-pill:hover:not(.active){color:var(--terracotta)}
+
+/* Alert box */
+.alert-box{background:rgba(185,28,28,0.05);border:0.5px solid var(--red);border-radius:12px;padding:1rem 1.2rem;margin-bottom:12px}
+.alert-title{font-size:12px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
+.alert-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;color:var(--text-dark)}
+.alert-row:last-child{margin-bottom:0}
+.alert-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0}
+
+/* Insight cards */
+.insight-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.insight-card{background:rgba(199,91,58,0.04);border:0.5px solid var(--border-strong);border-radius:10px;padding:0.9rem 1rem}
+.insight-icon{font-size:18px;margin-bottom:6px}
+.insight-title{font-size:12px;font-weight:600;color:var(--dark-brown);margin-bottom:4px}
+.insight-text{font-size:12px;color:var(--text-muted);line-height:1.5}
+
+footer{background:var(--dark-brown);padding:20px 2rem;display:flex;align-items:center;justify-content:space-between;margin-top:2rem}
+.footer-logo-text{font-family:'DM Serif Display',serif;font-size:15px;color:var(--peach)}
+.footer-right{font-size:12px;color:rgba(255,255,255,0.35)}
+.footer-right a{color:var(--peach);text-decoration:none}
+
+@media(max-width:900px){
+  .kpi-strip{grid-template-columns:repeat(2,1fr)}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .insight-grid{grid-template-columns:1fr}
+  .page-wrap{padding:70px 1rem 3rem}
+  nav{padding:0 1rem}
+  .nav-links{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="https://monahatami-ai.github.io/shelteriq/" class="nav-logo">
+    <svg viewBox="0 0 60 60" width="32" height="32">
+      <circle cx="30" cy="30" r="28" fill="#FAE8DC" opacity="0.6"/>
+      <circle cx="30" cy="30" r="23" fill="none" stroke="#E8724A" stroke-width="1.2" stroke-dasharray="3.5 3" opacity="0.7"/>
+      <circle cx="30" cy="7" r="2.8" fill="#C75B3A"/><circle cx="53" cy="30" r="2.8" fill="#F4C97A"/>
+      <circle cx="44" cy="48" r="2.8" fill="#C75B3A"/><circle cx="16" cy="48" r="2.8" fill="#C75B3A"/>
+      <circle cx="7" cy="30" r="2.8" fill="#C75B3A"/>
+      <circle cx="30" cy="30" r="16" fill="#E8724A"/>
+      <ellipse cx="30" cy="33" rx="6" ry="5" fill="white" opacity="0.92"/>
+      <circle cx="23" cy="26" r="3.2" fill="white" opacity="0.92"/>
+      <circle cx="30" cy="23" r="3.2" fill="white" opacity="0.92"/>
+      <circle cx="37" cy="26" r="3.2" fill="white" opacity="0.92"/>
+    </svg>
+    <span class="nav-logo-text">ShelterIQ</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="risk.html">Risk Predictor</a></li>
+    <li><a href="adopt.html">Adoption Matcher</a></li>
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="https://monahatami-ai.github.io/shelteriq/#contact" class="nav-cta">Get in Touch</a></li>
+  </ul>
+  <span class="nav-badge">Seasonal model · 66 months history</span>
+</nav>
+
+<div class="page-wrap">
+
+  <div class="dash-header">
+    <div>
+      <div class="dash-title">Intake <em>Forecasting</em></div>
+      <div class="dash-sub">12-month forward projection · Seasonal decomposition model · All 5 boroughs</div>
+    </div>
+    <div class="dash-controls">
+      <button class="ctrl-btn active" onclick="setView('total',this)">All shelters</button>
+      <button class="ctrl-btn" onclick="setView('shelter',this)">By shelter</button>
+      <button class="ctrl-btn" onclick="setView('species',this)">By species</button>
+    </div>
+  </div>
+
+  <!-- CAPACITY ALERTS -->
+  <div class="alert-box" id="alert-box">
+    <div class="alert-title">Predicted capacity pressure — next 3 months</div>
+    <div id="alert-rows"></div>
+  </div>
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip">
+    <div class="kpi">
+      <div class="kpi-label">Next month forecast</div>
+      <div class="kpi-num amber" id="k-next">–</div>
+      <div class="kpi-sub" id="k-next-sub">–</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Peak month (12mo)</div>
+      <div class="kpi-num red" id="k-peak">–</div>
+      <div class="kpi-sub" id="k-peak-sub">–</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Low month (12mo)</div>
+      <div class="kpi-num green" id="k-low">–</div>
+      <div class="kpi-sub" id="k-low-sub">–</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Summer vs winter</div>
+      <div class="kpi-num blue" id="k-seas">+40%</div>
+      <div class="kpi-sub">Jun–Aug vs Dec–Feb</div>
+    </div>
+  </div>
+
+  <!-- MAIN FORECAST CHART -->
+  <div class="full chart-card" id="main-chart-card">
+    <div class="card-title" id="main-title">Total intake — history & 12-month forecast</div>
+    <div class="card-sub">Shaded area = confidence interval (±15%) · Dashed line = forecast</div>
+    <div class="chart-wrap" style="height:300px"><canvas id="mainChart"></canvas></div>
+  </div>
+
+  <!-- SHELTER SELECTOR (hidden until shelter view) -->
+  <div id="shelter-selector" style="display:none">
+    <div class="chart-card">
+      <div class="card-title">Forecast by shelter</div>
+      <div class="card-sub">Select a shelter to see its 12-month forecast</div>
+      <div class="sh-pills">
+        <div class="sh-pill active" onclick="selectShelter('Brooklyn',this)">Brooklyn</div>
+        <div class="sh-pill" onclick="selectShelter('Manhattan',this)">Manhattan</div>
+        <div class="sh-pill" onclick="selectShelter('Bronx',this)">Bronx</div>
+        <div class="sh-pill" onclick="selectShelter('Staten Island',this)">Staten Island</div>
+        <div class="sh-pill" onclick="selectShelter('Queens',this)">Queens</div>
+      </div>
+      <div class="chart-wrap" style="height:260px"><canvas id="shelterChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- SPECIES CHART (hidden until species view) -->
+  <div id="species-view" style="display:none" class="chart-card" style="margin-bottom:12px">
+    <div class="card-title">Cat vs Dog intake trend</div>
+    <div class="card-sub">Cats dominate summer — dogs stay more consistent year-round</div>
+    <div class="chart-wrap" style="height:260px"><canvas id="speciesChart"></canvas></div>
+  </div>
+
+  <!-- ROW 2 -->
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="card-title">Seasonal pattern</div>
+      <div class="card-sub">Average monthly intake 2018–2022 — plan staffing around these peaks</div>
+      <div class="chart-wrap" style="height:230px"><canvas id="seasonalChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">Forecast insights</div>
+      <div class="card-sub">AI-generated planning recommendations</div>
+      <div class="insight-grid">
+        <div class="insight-card">
+          <div class="insight-icon">☀️</div>
+          <div class="insight-title">Summer surge</div>
+          <div class="insight-text">Jun–Aug intake runs 40% above winter baseline. Recruit 30+ fosters by May to absorb the surge.</div>
+        </div>
+        <div class="insight-card">
+          <div class="insight-icon">🐈</div>
+          <div class="insight-title">Kitten season</div>
+          <div class="insight-text">Cat intake spikes 60% in summer. Pre-position TNR resources in high-intake zip codes by April.</div>
+        </div>
+        <div class="insight-card">
+          <div class="insight-icon">🏙️</div>
+          <div class="insight-title">Manhattan pressure</div>
+          <div class="insight-text">Manhattan has the longest stays (21 days). Forecast suggests capacity risk in Jun–Aug.</div>
+        </div>
+        <div class="insight-card">
+          <div class="insight-icon">📉</div>
+          <div class="insight-title">Post-COVID trend</div>
+          <div class="insight-text">Intake 30% lower than 2018–19 peak. Model projects continued moderate volumes through 2024.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div style="display:flex;align-items:center;gap:8px">
+    <svg viewBox="0 0 60 60" width="22" height="22"><circle cx="30" cy="30" r="16" fill="#E8724A"/><ellipse cx="30" cy="33" rx="6" ry="5" fill="white" opacity="0.92"/><circle cx="23" cy="26" r="3.2" fill="white" opacity="0.92"/><circle cx="30" cy="23" r="3.2" fill="white" opacity="0.92"/><circle cx="37" cy="26" r="3.2" fill="white" opacity="0.92"/></svg>
+    <span class="footer-logo-text">ShelterIQ</span>
+  </div>
+  <div class="footer-right">
+    <a href="https://monahatami-ai.github.io/shelteriq/">← Back to ShelterIQ</a>
+    &nbsp;·&nbsp; Intake Forecasting · Seasonal decomposition · 66 months historical data
+  </div>
+</footer>
+
+<script>
+const DATA = {"historical": [{"month": "2017-10", "count": 1955}, {"month": "2017-11", "count": 1656}, {"month": "2017-12", "count": 1449}, {"month": "2018-01", "count": 1360}, {"month": "2018-02", "count": 1350}, {"month": "2018-03", "count": 1482}, {"month": "2018-04", "count": 1617}, {"month": "2018-05", "count": 2099}, {"month": "2018-06", "count": 2113}, {"month": "2018-07", "count": 2362}, {"month": "2018-08", "count": 2322}, {"month": "2018-09", "count": 2028}, {"month": "2018-10", "count": 2162}, {"month": "2018-11", "count": 1645}, {"month": "2018-12", "count": 1455}, {"month": "2019-01", "count": 1492}, {"month": "2019-02", "count": 1489}, {"month": "2019-03", "count": 1631}, {"month": "2019-04", "count": 1850}, {"month": "2019-05", "count": 1995}, {"month": "2019-06", "count": 2164}, {"month": "2019-07", "count": 2008}, {"month": "2019-08", "count": 2070}, {"month": "2019-09", "count": 1909}, {"month": "2019-10", "count": 1799}, {"month": "2019-11", "count": 1424}, {"month": "2019-12", "count": 1363}, {"month": "2020-01", "count": 1406}, {"month": "2020-02", "count": 1343}, {"month": "2020-03", "count": 992}, {"month": "2020-04", "count": 594}, {"month": "2020-05", "count": 830}, {"month": "2020-06", "count": 1004}, {"month": "2020-07", "count": 1189}, {"month": "2020-08", "count": 1192}, {"month": "2020-09", "count": 1105}, {"month": "2020-10", "count": 1117}, {"month": "2020-11", "count": 944}, {"month": "2020-12", "count": 903}, {"month": "2021-01", "count": 756}, {"month": "2021-02", "count": 533}, {"month": "2021-03", "count": 854}, {"month": "2021-04", "count": 939}, {"month": "2021-05", "count": 1141}, {"month": "2021-06", "count": 1289}, {"month": "2021-07", "count": 1294}, {"month": "2021-08", "count": 1268}, {"month": "2021-09", "count": 1173}, {"month": "2021-10", "count": 1124}, {"month": "2021-11", "count": 1058}, {"month": "2021-12", "count": 1028}, {"month": "2022-01", "count": 889}, {"month": "2022-02", "count": 833}, {"month": "2022-03", "count": 994}, {"month": "2022-04", "count": 1108}, {"month": "2022-05", "count": 1184}, {"month": "2022-06", "count": 1202}, {"month": "2022-07", "count": 1405}, {"month": "2022-08", "count": 1389}, {"month": "2022-09", "count": 1317}, {"month": "2022-10", "count": 1272}, {"month": "2022-11", "count": 1107}, {"month": "2022-12", "count": 1076}, {"month": "2023-01", "count": 1089}, {"month": "2023-02", "count": 980}, {"month": "2023-03", "count": 683}], "forecast": [{"month": "2023-04", "predicted": 1004, "low": 853, "high": 1154}, {"month": "2023-05", "predicted": 1197, "low": 1017, "high": 1376}, {"month": "2023-06", "predicted": 1290, "low": 1096, "high": 1483}, {"month": "2023-07", "predicted": 1378, "low": 1171, "high": 1584}, {"month": "2023-08", "predicted": 1382, "low": 1174, "high": 1589}, {"month": "2023-09", "predicted": 1268, "low": 1077, "high": 1458}, {"month": "2023-10", "predicted": 1264, "low": 1074, "high": 1453}, {"month": "2023-11", "predicted": 1050, "low": 892, "high": 1207}, {"month": "2023-12", "predicted": 995, "low": 845, "high": 1144}, {"month": "2024-01", "predicted": 1013, "low": 861, "high": 1164}, {"month": "2024-02", "predicted": 956, "low": 812, "high": 1099}, {"month": "2024-03", "predicted": 1031, "low": 876, "high": 1185}], "shelter_historical": {"Brooklyn": [{"month": "2017-10", "count": 697}, {"month": "2017-11", "count": 645}, {"month": "2017-12", "count": 533}, {"month": "2018-01", "count": 512}, {"month": "2018-02", "count": 463}, {"month": "2018-03", "count": 547}, {"month": "2018-04", "count": 573}, {"month": "2018-05", "count": 736}, {"month": "2018-06", "count": 770}, {"month": "2018-07", "count": 949}, {"month": "2018-08", "count": 905}, {"month": "2018-09", "count": 904}, {"month": "2018-10", "count": 839}, {"month": "2018-11", "count": 627}, {"month": "2018-12", "count": 528}, {"month": "2019-01", "count": 571}, {"month": "2019-02", "count": 556}, {"month": "2019-03", "count": 612}, {"month": "2019-04", "count": 718}, {"month": "2019-05", "count": 753}, {"month": "2019-06", "count": 769}, {"month": "2019-07", "count": 699}, {"month": "2019-08", "count": 774}, {"month": "2019-09", "count": 737}, {"month": "2019-10", "count": 659}, {"month": "2019-11", "count": 514}, {"month": "2019-12", "count": 540}, {"month": "2020-01", "count": 509}, {"month": "2020-02", "count": 497}, {"month": "2020-03", "count": 407}, {"month": "2020-04", "count": 263}, {"month": "2020-05", "count": 397}, {"month": "2020-06", "count": 488}, {"month": "2020-07", "count": 555}, {"month": "2020-08", "count": 552}, {"month": "2020-09", "count": 471}, {"month": "2020-10", "count": 499}, {"month": "2020-11", "count": 397}, {"month": "2020-12", "count": 371}, {"month": "2021-01", "count": 280}, {"month": "2021-02", "count": 331}, {"month": "2021-03", "count": 366}, {"month": "2021-04", "count": 383}, {"month": "2021-05", "count": 521}, {"month": "2021-06", "count": 619}, {"month": "2021-07", "count": 653}, {"month": "2021-08", "count": 559}, {"month": "2021-09", "count": 560}, {"month": "2021-10", "count": 478}, {"month": "2021-11", "count": 428}, {"month": "2021-12", "count": 426}, {"month": "2022-01", "count": 377}, {"month": "2022-02", "count": 376}, {"month": "2022-03", "count": 368}, {"month": "2022-04", "count": 442}, {"month": "2022-05", "count": 533}, {"month": "2022-06", "count": 580}, {"month": "2022-07", "count": 666}, {"month": "2022-08", "count": 603}, {"month": "2022-09", "count": 540}, {"month": "2022-10", "count": 490}, {"month": "2022-11", "count": 402}, {"month": "2022-12", "count": 412}, {"month": "2023-01", "count": 429}, {"month": "2023-02", "count": 384}, {"month": "2023-03", "count": 226}], "Manhattan": [{"month": "2017-10", "count": 633}, {"month": "2017-11", "count": 464}, {"month": "2017-12", "count": 443}, {"month": "2018-01", "count": 404}, {"month": "2018-02", "count": 470}, {"month": "2018-03", "count": 457}, {"month": "2018-04", "count": 469}, {"month": "2018-05", "count": 592}, {"month": "2018-06", "count": 687}, {"month": "2018-07", "count": 616}, {"month": "2018-08", "count": 664}, {"month": "2018-09", "count": 608}, {"month": "2018-10", "count": 640}, {"month": "2018-11", "count": 487}, {"month": "2018-12", "count": 444}, {"month": "2019-01", "count": 438}, {"month": "2019-02", "count": 472}, {"month": "2019-03", "count": 546}, {"month": "2019-04", "count": 547}, {"month": "2019-05", "count": 549}, {"month": "2019-06", "count": 660}, {"month": "2019-07", "count": 627}, {"month": "2019-08", "count": 664}, {"month": "2019-09", "count": 639}, {"month": "2019-10", "count": 596}, {"month": "2019-11", "count": 479}, {"month": "2019-12", "count": 475}, {"month": "2020-01", "count": 485}, {"month": "2020-02", "count": 480}, {"month": "2020-03", "count": 399}, {"month": "2020-04", "count": 297}, {"month": "2020-05", "count": 358}, {"month": "2020-06", "count": 418}, {"month": "2020-07", "count": 514}, {"month": "2020-08", "count": 547}, {"month": "2020-09", "count": 465}, {"month": "2020-10", "count": 447}, {"month": "2020-11", "count": 471}, {"month": "2020-12", "count": 417}, {"month": "2021-01", "count": 377}, {"month": "2021-02", "count": 166}, {"month": "2021-03", "count": 422}, {"month": "2021-04", "count": 490}, {"month": "2021-05", "count": 519}, {"month": "2021-06", "count": 560}, {"month": "2021-07", "count": 579}, {"month": "2021-08", "count": 548}, {"month": "2021-09", "count": 400}, {"month": "2021-10", "count": 457}, {"month": "2021-11", "count": 479}, {"month": "2021-12", "count": 470}, {"month": "2022-01", "count": 368}, {"month": "2022-02", "count": 324}, {"month": "2022-03", "count": 435}, {"month": "2022-04", "count": 475}, {"month": "2022-05", "count": 403}, {"month": "2022-06", "count": 409}, {"month": "2022-07", "count": 461}, {"month": "2022-08", "count": 550}, {"month": "2022-09", "count": 499}, {"month": "2022-10", "count": 545}, {"month": "2022-11", "count": 498}, {"month": "2022-12", "count": 524}, {"month": "2023-01", "count": 475}, {"month": "2023-02", "count": 421}, {"month": "2023-03", "count": 326}], "Bronx": [{"month": "2017-10", "count": 264}, {"month": "2017-11", "count": 248}, {"month": "2017-12", "count": 210}, {"month": "2018-01", "count": 223}, {"month": "2018-02", "count": 213}, {"month": "2018-03", "count": 227}, {"month": "2018-04", "count": 233}, {"month": "2018-05", "count": 299}, {"month": "2018-06", "count": 243}, {"month": "2018-07", "count": 315}, {"month": "2018-08", "count": 309}, {"month": "2018-09", "count": 257}, {"month": "2018-10", "count": 304}, {"month": "2018-11", "count": 232}, {"month": "2018-12", "count": 244}, {"month": "2019-01", "count": 221}, {"month": "2019-02", "count": 224}, {"month": "2019-03", "count": 240}, {"month": "2019-04", "count": 224}, {"month": "2019-05", "count": 268}, {"month": "2019-06", "count": 284}, {"month": "2019-07", "count": 256}, {"month": "2019-08", "count": 266}, {"month": "2019-09", "count": 224}, {"month": "2019-10", "count": 242}, {"month": "2019-11", "count": 184}, {"month": "2019-12", "count": 162}, {"month": "2020-01", "count": 203}, {"month": "2020-02", "count": 187}, {"month": "2020-03", "count": 79}, {"month": "2020-04", "count": 0}, {"month": "2020-05", "count": 0}, {"month": "2020-06", "count": 0}, {"month": "2020-07", "count": 1}, {"month": "2020-08", "count": 0}, {"month": "2020-09", "count": 29}, {"month": "2020-10", "count": 83}, {"month": "2020-11", "count": 53}, {"month": "2020-12", "count": 40}, {"month": "2021-01", "count": 49}, {"month": "2021-02", "count": 2}, {"month": "2021-03", "count": 0}, {"month": "2021-04", "count": 0}, {"month": "2021-05", "count": 0}, {"month": "2021-06", "count": 0}, {"month": "2021-07", "count": 0}, {"month": "2021-08", "count": 63}, {"month": "2021-09", "count": 111}, {"month": "2021-10", "count": 79}, {"month": "2021-11", "count": 79}, {"month": "2021-12", "count": 47}, {"month": "2022-01", "count": 79}, {"month": "2022-02", "count": 88}, {"month": "2022-03", "count": 101}, {"month": "2022-04", "count": 117}, {"month": "2022-05", "count": 123}, {"month": "2022-06", "count": 116}, {"month": "2022-07", "count": 171}, {"month": "2022-08", "count": 131}, {"month": "2022-09", "count": 146}, {"month": "2022-10", "count": 126}, {"month": "2022-11", "count": 118}, {"month": "2022-12", "count": 80}, {"month": "2023-01", "count": 96}, {"month": "2023-02", "count": 101}, {"month": "2023-03", "count": 84}], "Staten Island": [{"month": "2017-10", "count": 140}, {"month": "2017-11", "count": 143}, {"month": "2017-12", "count": 131}, {"month": "2018-01", "count": 87}, {"month": "2018-02", "count": 90}, {"month": "2018-03", "count": 111}, {"month": "2018-04", "count": 153}, {"month": "2018-05", "count": 194}, {"month": "2018-06", "count": 241}, {"month": "2018-07", "count": 257}, {"month": "2018-08", "count": 246}, {"month": "2018-09", "count": 73}, {"month": "2018-10", "count": 191}, {"month": "2018-11", "count": 153}, {"month": "2018-12", "count": 123}, {"month": "2019-01", "count": 132}, {"month": "2019-02", "count": 140}, {"month": "2019-03", "count": 111}, {"month": "2019-04", "count": 173}, {"month": "2019-05", "count": 211}, {"month": "2019-06", "count": 200}, {"month": "2019-07", "count": 227}, {"month": "2019-08", "count": 207}, {"month": "2019-09", "count": 148}, {"month": "2019-10", "count": 196}, {"month": "2019-11", "count": 142}, {"month": "2019-12", "count": 95}, {"month": "2020-01", "count": 112}, {"month": "2020-02", "count": 81}, {"month": "2020-03", "count": 69}, {"month": "2020-04", "count": 34}, {"month": "2020-05", "count": 75}, {"month": "2020-06", "count": 98}, {"month": "2020-07", "count": 119}, {"month": "2020-08", "count": 93}, {"month": "2020-09", "count": 140}, {"month": "2020-10", "count": 88}, {"month": "2020-11", "count": 23}, {"month": "2020-12", "count": 75}, {"month": "2021-01", "count": 50}, {"month": "2021-02", "count": 34}, {"month": "2021-03", "count": 66}, {"month": "2021-04", "count": 66}, {"month": "2021-05", "count": 101}, {"month": "2021-06", "count": 110}, {"month": "2021-07", "count": 62}, {"month": "2021-08", "count": 98}, {"month": "2021-09", "count": 102}, {"month": "2021-10", "count": 110}, {"month": "2021-11", "count": 72}, {"month": "2021-12", "count": 85}, {"month": "2022-01", "count": 65}, {"month": "2022-02", "count": 45}, {"month": "2022-03", "count": 90}, {"month": "2022-04", "count": 74}, {"month": "2022-05", "count": 125}, {"month": "2022-06", "count": 97}, {"month": "2022-07", "count": 107}, {"month": "2022-08", "count": 105}, {"month": "2022-09", "count": 132}, {"month": "2022-10", "count": 111}, {"month": "2022-11", "count": 89}, {"month": "2022-12", "count": 60}, {"month": "2023-01", "count": 89}, {"month": "2023-02", "count": 74}, {"month": "2023-03", "count": 47}], "Queens": [{"month": "2017-10", "count": 221}, {"month": "2017-11", "count": 156}, {"month": "2017-12", "count": 132}, {"month": "2018-01", "count": 134}, {"month": "2018-02", "count": 114}, {"month": "2018-03", "count": 140}, {"month": "2018-04", "count": 189}, {"month": "2018-05", "count": 278}, {"month": "2018-06", "count": 172}, {"month": "2018-07", "count": 225}, {"month": "2018-08", "count": 198}, {"month": "2018-09", "count": 186}, {"month": "2018-10", "count": 188}, {"month": "2018-11", "count": 146}, {"month": "2018-12", "count": 116}, {"month": "2019-01", "count": 130}, {"month": "2019-02", "count": 97}, {"month": "2019-03", "count": 122}, {"month": "2019-04", "count": 188}, {"month": "2019-05", "count": 214}, {"month": "2019-06", "count": 251}, {"month": "2019-07", "count": 199}, {"month": "2019-08", "count": 159}, {"month": "2019-09", "count": 161}, {"month": "2019-10", "count": 106}, {"month": "2019-11", "count": 105}, {"month": "2019-12", "count": 91}, {"month": "2020-01", "count": 97}, {"month": "2020-02", "count": 98}, {"month": "2020-03", "count": 38}, {"month": "2020-04", "count": 0}, {"month": "2020-05", "count": 0}, {"month": "2020-06", "count": 0}, {"month": "2020-07", "count": 0}, {"month": "2020-08", "count": 0}, {"month": "2020-09", "count": 0}, {"month": "2020-10", "count": 0}, {"month": "2020-11", "count": 0}, {"month": "2020-12", "count": 0}, {"month": "2021-01", "count": 0}, {"month": "2021-02", "count": 0}, {"month": "2021-03", "count": 0}, {"month": "2021-04", "count": 0}, {"month": "2021-05", "count": 0}, {"month": "2021-06", "count": 0}, {"month": "2021-07", "count": 0}, {"month": "2021-08", "count": 0}, {"month": "2021-09", "count": 0}, {"month": "2021-10", "count": 0}, {"month": "2021-11", "count": 0}, {"month": "2021-12", "count": 0}, {"month": "2022-01", "count": 0}, {"month": "2022-02", "count": 0}, {"month": "2022-03", "count": 0}, {"month": "2022-04", "count": 0}, {"month": "2022-05", "count": 0}, {"month": "2022-06", "count": 0}, {"month": "2022-07", "count": 0}, {"month": "2022-08", "count": 0}, {"month": "2022-09", "count": 0}, {"month": "2022-10", "count": 0}, {"month": "2022-11", "count": 0}, {"month": "2022-12", "count": 0}, {"month": "2023-01", "count": 0}, {"month": "2023-02", "count": 0}, {"month": "2023-03", "count": 0}]}, "shelter_forecasts": {"Brooklyn": [{"month": "2023-04", "predicted": 426, "low": 362, "high": 489}, {"month": "2023-05", "predicted": 505, "low": 429, "high": 580}, {"month": "2023-06", "predicted": 542, "low": 460, "high": 623}, {"month": "2023-07", "predicted": 575, "low": 488, "high": 661}, {"month": "2023-08", "predicted": 574, "low": 487, "high": 660}, {"month": "2023-09", "predicted": 524, "low": 445, "high": 602}, {"month": "2023-10", "predicted": 519, "low": 441, "high": 596}, {"month": "2023-11", "predicted": 429, "low": 364, "high": 493}, {"month": "2023-12", "predicted": 404, "low": 343, "high": 464}, {"month": "2024-01", "predicted": 409, "low": 347, "high": 470}, {"month": "2024-02", "predicted": 384, "low": 326, "high": 441}, {"month": "2024-03", "predicted": 412, "low": 350, "high": 473}], "Manhattan": [{"month": "2023-04", "predicted": 417, "low": 354, "high": 479}, {"month": "2023-05", "predicted": 495, "low": 420, "high": 569}, {"month": "2023-06", "predicted": 530, "low": 450, "high": 609}, {"month": "2023-07", "predicted": 563, "low": 478, "high": 647}, {"month": "2023-08", "predicted": 561, "low": 476, "high": 645}, {"month": "2023-09", "predicted": 513, "low": 436, "high": 589}, {"month": "2023-10", "predicted": 508, "low": 431, "high": 584}, {"month": "2023-11", "predicted": 420, "low": 357, "high": 482}, {"month": "2023-12", "predicted": 396, "low": 336, "high": 455}, {"month": "2024-01", "predicted": 401, "low": 340, "high": 461}, {"month": "2024-02", "predicted": 376, "low": 319, "high": 432}, {"month": "2024-03", "predicted": 403, "low": 342, "high": 463}], "Bronx": [{"month": "2023-04", "predicted": 81, "low": 68, "high": 93}, {"month": "2023-05", "predicted": 102, "low": 86, "high": 117}, {"month": "2023-06", "predicted": 115, "low": 97, "high": 132}, {"month": "2023-07", "predicted": 129, "low": 109, "high": 148}, {"month": "2023-08", "predicted": 135, "low": 114, "high": 155}, {"month": "2023-09", "predicted": 129, "low": 109, "high": 148}, {"month": "2023-10", "predicted": 134, "low": 113, "high": 154}, {"month": "2023-11", "predicted": 115, "low": 97, "high": 132}, {"month": "2023-12", "predicted": 113, "low": 96, "high": 129}, {"month": "2024-01", "predicted": 119, "low": 101, "high": 136}, {"month": "2024-02", "predicted": 116, "low": 98, "high": 133}, {"month": "2024-03", "predicted": 129, "low": 109, "high": 148}], "Staten Island": [{"month": "2023-04", "predicted": 79, "low": 67, "high": 90}, {"month": "2023-05", "predicted": 95, "low": 80, "high": 109}, {"month": "2023-06", "predicted": 102, "low": 86, "high": 117}, {"month": "2023-07", "predicted": 110, "low": 93, "high": 126}, {"month": "2023-08", "predicted": 110, "low": 93, "high": 126}, {"month": "2023-09", "predicted": 101, "low": 85, "high": 116}, {"month": "2023-10", "predicted": 101, "low": 85, "high": 116}, {"month": "2023-11", "predicted": 84, "low": 71, "high": 96}, {"month": "2023-12", "predicted": 80, "low": 68, "high": 92}, {"month": "2024-01", "predicted": 82, "low": 69, "high": 94}, {"month": "2024-02", "predicted": 78, "low": 66, "high": 89}, {"month": "2024-03", "predicted": 84, "low": 71, "high": 96}], "Queens": [{"month": "2023-04", "predicted": 0, "low": 0, "high": 0}, {"month": "2023-05", "predicted": 0, "low": 0, "high": 0}, {"month": "2023-06", "predicted": 0, "low": 0, "high": 0}, {"month": "2023-07", "predicted": 0, "low": 0, "high": 0}, {"month": "2023-08", "predicted": 0, "low": 0, "high": 0}, {"month": "2023-09", "predicted": 0, "low": 0, "high": 0}, {"month": "2023-10", "predicted": 0, "low": 0, "high": 0}, {"month": "2023-11", "predicted": 0, "low": 0, "high": 0}, {"month": "2023-12", "predicted": 0, "low": 0, "high": 0}, {"month": "2024-01", "predicted": 0, "low": 0, "high": 0}, {"month": "2024-02", "predicted": 0, "low": 0, "high": 0}, {"month": "2024-03", "predicted": 0, "low": 0, "high": 0}]}, "seasonal": [{"month": "Jan", "avg": 1180}, {"month": "Feb", "avg": 1109}, {"month": "Mar", "avg": 1190}, {"month": "Apr", "avg": 1221}, {"month": "May", "avg": 1449}, {"month": "Jun", "avg": 1554}, {"month": "Jul", "avg": 1651}, {"month": "Aug", "avg": 1648}, {"month": "Sep", "avg": 1506}, {"month": "Oct", "avg": 1494}, {"month": "Nov", "avg": 1235}, {"month": "Dec", "avg": 1165}], "cat_trend": [{"month": "2017-10", "count": 1225}, {"month": "2017-11", "count": 1042}, {"month": "2017-12", "count": 822}, {"month": "2018-01", "count": 770}, {"month": "2018-02", "count": 719}, {"month": "2018-03", "count": 798}, {"month": "2018-04", "count": 946}, {"month": "2018-05", "count": 1333}, {"month": "2018-06", "count": 1342}, {"month": "2018-07", "count": 1567}, {"month": "2018-08", "count": 1491}, {"month": "2018-09", "count": 1271}, {"month": "2018-10", "count": 1314}, {"month": "2018-11", "count": 904}, {"month": "2018-12", "count": 790}, {"month": "2019-01", "count": 843}, {"month": "2019-02", "count": 782}, {"month": "2019-03", "count": 899}, {"month": "2019-04", "count": 1082}, {"month": "2019-05", "count": 1187}, {"month": "2019-06", "count": 1408}, {"month": "2019-07", "count": 1340}, {"month": "2019-08", "count": 1377}, {"month": "2019-09", "count": 1224}, {"month": "2019-10", "count": 1193}, {"month": "2019-11", "count": 877}, {"month": "2019-12", "count": 774}, {"month": "2020-01", "count": 804}, {"month": "2020-02", "count": 711}, {"month": "2020-03", "count": 520}, {"month": "2020-04", "count": 334}, {"month": "2020-05", "count": 511}, {"month": "2020-06", "count": 668}, {"month": "2020-07", "count": 764}, {"month": "2020-08", "count": 778}, {"month": "2020-09", "count": 705}, {"month": "2020-10", "count": 694}, {"month": "2020-11", "count": 471}, {"month": "2020-12", "count": 507}, {"month": "2021-01", "count": 412}, {"month": "2021-02", "count": 275}, {"month": "2021-03", "count": 466}, {"month": "2021-04", "count": 569}, {"month": "2021-05", "count": 697}, {"month": "2021-06", "count": 764}, {"month": "2021-07", "count": 762}, {"month": "2021-08", "count": 811}, {"month": "2021-09", "count": 748}, {"month": "2021-10", "count": 655}, {"month": "2021-11", "count": 576}, {"month": "2021-12", "count": 553}, {"month": "2022-01", "count": 461}, {"month": "2022-02", "count": 407}, {"month": "2022-03", "count": 503}, {"month": "2022-04", "count": 568}, {"month": "2022-05", "count": 778}, {"month": "2022-06", "count": 757}, {"month": "2022-07", "count": 878}, {"month": "2022-08", "count": 889}, {"month": "2022-09", "count": 810}, {"month": "2022-10", "count": 730}, {"month": "2022-11", "count": 622}, {"month": "2022-12", "count": 585}, {"month": "2023-01", "count": 557}, {"month": "2023-02", "count": 496}, {"month": "2023-03", "count": 310}], "dog_trend": [{"month": "2017-10", "count": 619}, {"month": "2017-11", "count": 535}, {"month": "2017-12", "count": 556}, {"month": "2018-01", "count": 512}, {"month": "2018-02", "count": 555}, {"month": "2018-03", "count": 556}, {"month": "2018-04", "count": 519}, {"month": "2018-05", "count": 595}, {"month": "2018-06", "count": 586}, {"month": "2018-07", "count": 597}, {"month": "2018-08", "count": 620}, {"month": "2018-09", "count": 524}, {"month": "2018-10", "count": 642}, {"month": "2018-11", "count": 570}, {"month": "2018-12", "count": 538}, {"month": "2019-01", "count": 513}, {"month": "2019-02", "count": 510}, {"month": "2019-03", "count": 505}, {"month": "2019-04", "count": 505}, {"month": "2019-05", "count": 548}, {"month": "2019-06", "count": 538}, {"month": "2019-07", "count": 492}, {"month": "2019-08", "count": 520}, {"month": "2019-09", "count": 519}, {"month": "2019-10", "count": 490}, {"month": "2019-11", "count": 446}, {"month": "2019-12", "count": 458}, {"month": "2020-01", "count": 465}, {"month": "2020-02", "count": 484}, {"month": "2020-03", "count": 369}, {"month": "2020-04", "count": 202}, {"month": "2020-05", "count": 251}, {"month": "2020-06", "count": 256}, {"month": "2020-07", "count": 312}, {"month": "2020-08", "count": 284}, {"month": "2020-09", "count": 294}, {"month": "2020-10", "count": 308}, {"month": "2020-11", "count": 294}, {"month": "2020-12", "count": 294}, {"month": "2021-01", "count": 262}, {"month": "2021-02", "count": 205}, {"month": "2021-03", "count": 306}, {"month": "2021-04", "count": 288}, {"month": "2021-05", "count": 284}, {"month": "2021-06", "count": 341}, {"month": "2021-07", "count": 341}, {"month": "2021-08", "count": 314}, {"month": "2021-09", "count": 299}, {"month": "2021-10", "count": 357}, {"month": "2021-11", "count": 337}, {"month": "2021-12", "count": 332}, {"month": "2022-01", "count": 312}, {"month": "2022-02", "count": 296}, {"month": "2022-03", "count": 339}, {"month": "2022-04", "count": 354}, {"month": "2022-05", "count": 281}, {"month": "2022-06", "count": 292}, {"month": "2022-07", "count": 333}, {"month": "2022-08", "count": 366}, {"month": "2022-09", "count": 365}, {"month": "2022-10", "count": 410}, {"month": "2022-11", "count": 387}, {"month": "2022-12", "count": 393}, {"month": "2023-01", "count": 419}, {"month": "2023-02", "count": 381}, {"month": "2023-03", "count": 306}]};
+
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.color = '#8C6050';
+
+let mainChart, shelterChart, speciesChart, seasonalChart;
+let currentView = 'total';
+let currentShelter = 'Brooklyn';
+
+const TC = '#C75B3A', GREEN = '#15803D', RED = '#B91C1C', BLUE = '#1D4ED8', AMBER = '#B45309';
+
+// ── KPIs ──────────────────────────────────────────────────────────────────────
+function updateKPIs() {
+  const fc = DATA.forecast;
+  const next = fc[0];
+  const peak = fc.reduce((a,b) => b.predicted > a.predicted ? b : a);
+  const low  = fc.reduce((a,b) => b.predicted < a.predicted ? b : a);
+
+  document.getElementById('k-next').textContent = next.predicted.toLocaleString();
+  document.getElementById('k-next-sub').textContent = next.month + ' · range ' + next.low.toLocaleString() + '–' + next.high.toLocaleString();
+  document.getElementById('k-peak').textContent = peak.predicted.toLocaleString();
+  document.getElementById('k-peak-sub').textContent = peak.month + ' (summer peak)';
+  document.getElementById('k-low').textContent = low.predicted.toLocaleString();
+  document.getElementById('k-low-sub').textContent = low.month + ' (winter low)';
+}
+
+// ── Alerts ────────────────────────────────────────────────────────────────────
+function updateAlerts() {
+  const fc = DATA.forecast.slice(0, 3);
+  const hist = DATA.historical;
+  const recentAvg = hist.slice(-12).reduce((s,h) => s + h.count, 0) / 12;
+
+  document.getElementById('alert-rows').innerHTML = fc.map(f => {
+    const pct = Math.round((f.predicted - recentAvg) / recentAvg * 100);
+    const arrow = pct > 5 ? '↑' : pct < -5 ? '↓' : '→';
+    const color = pct > 10 ? RED : pct > 0 ? AMBER : GREEN;
+    return `<div class="alert-row">
+      <div class="alert-dot" style="background:${color}"></div>
+      <span><strong>${f.month}</strong> — ${f.predicted.toLocaleString()} animals forecast (${arrow}${Math.abs(pct)}% vs recent avg · range ${f.low.toLocaleString()}–${f.high.toLocaleString()})</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Main chart ────────────────────────────────────────────────────────────────
+function buildMainChart() {
+  const hist = DATA.historical;
+  const fc = DATA.forecast;
+
+  const histLabels = hist.map(h => h.month);
+  const histData   = hist.map(h => h.count);
+  const fcLabels   = fc.map(f => f.month);
+  const fcData     = fc.map(f => f.predicted);
+  const fcHigh     = fc.map(f => f.high);
+  const fcLow      = fc.map(f => f.low);
+
+  const allLabels = [...histLabels, ...fcLabels];
+
+  if(mainChart) mainChart.destroy();
+  mainChart = new Chart(document.getElementById('mainChart'), {
+    type: 'line',
+    data: {
+      labels: allLabels,
+      datasets: [
+        {
+          label: 'Historical intake',
+          data: [...histData, ...Array(fcLabels.length).fill(null)],
+          borderColor: TC, backgroundColor: 'rgba(199,91,58,0.08)',
+          fill: true, borderWidth: 2, tension: 0.3, pointRadius: 2,
+        },
+        {
+          label: 'Forecast',
+          data: [...Array(histLabels.length - 1).fill(null), histData[histData.length-1], ...fcData],
+          borderColor: AMBER, backgroundColor: 'transparent',
+          borderWidth: 2, borderDash: [6,3], tension: 0.3, pointRadius: 3,
+          pointBackgroundColor: AMBER,
+        },
+        {
+          label: 'Upper bound',
+          data: [...Array(histLabels.length).fill(null), ...fcHigh],
+          borderColor: 'transparent', backgroundColor: 'rgba(180,83,9,0.08)',
+          fill: '+1', pointRadius: 0, tension: 0.3,
+        },
+        {
+          label: 'Lower bound',
+          data: [...Array(histLabels.length).fill(null), ...fcLow],
+          borderColor: 'transparent', backgroundColor: 'rgba(180,83,9,0.08)',
+          fill: false, pointRadius: 0, tension: 0.3,
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font:{size:11}, boxWidth:12, filter: item => item.text !== 'Upper bound' && item.text !== 'Lower bound' } },
+        tooltip: { mode: 'index', filter: item => item.datasetIndex < 2 }
+      },
+      scales: {
+        y: { beginAtZero: false, grid:{color:'rgba(199,91,58,0.08)'}, ticks:{font:{size:11}} },
+        x: { grid:{display:false}, ticks:{font:{size:10}, maxTicksLimit:18} }
+      }
+    }
+  });
+}
+
+// ── Shelter chart ─────────────────────────────────────────────────────────────
+function buildShelterChart(shelter) {
+  const hist = DATA.shelter_historical[shelter];
+  const fc   = DATA.shelter_forecasts[shelter];
+  const histLabels = hist.map(h => h.month);
+  const histData   = hist.map(h => h.count);
+  const fcLabels   = fc.map(f => f.month);
+  const fcData     = fc.map(f => f.predicted);
+  const allLabels  = [...histLabels, ...fcLabels];
+
+  if(shelterChart) shelterChart.destroy();
+  shelterChart = new Chart(document.getElementById('shelterChart'), {
+    type: 'line',
+    data: {
+      labels: allLabels,
+      datasets: [
+        { label: shelter+' historical', data: [...histData, ...Array(fcLabels.length).fill(null)], borderColor: TC, backgroundColor:'rgba(199,91,58,0.08)', fill:true, borderWidth:2, tension:0.3, pointRadius:2 },
+        { label: 'Forecast', data: [...Array(histLabels.length-1).fill(null), histData[histData.length-1], ...fcData], borderColor:AMBER, backgroundColor:'transparent', borderWidth:2, borderDash:[6,3], tension:0.3, pointRadius:3, pointBackgroundColor:AMBER },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'top',labels:{font:{size:11},boxWidth:12}}, tooltip:{mode:'index'} },
+      scales:{
+        y:{beginAtZero:false,grid:{color:'rgba(199,91,58,0.08)'},ticks:{font:{size:11}}},
+        x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:18}}
+      }
+    }
+  });
+}
+
+// ── Species chart ─────────────────────────────────────────────────────────────
+function buildSpeciesChart() {
+  const cats = DATA.cat_trend;
+  const dogs = DATA.dog_trend;
+  if(speciesChart) speciesChart.destroy();
+  speciesChart = new Chart(document.getElementById('speciesChart'), {
+    type: 'line',
+    data: {
+      labels: cats.map(c => c.month),
+      datasets: [
+        { label:'Cats + Kittens', data:cats.map(c=>c.count), borderColor:'#9D174D', backgroundColor:'rgba(157,23,77,0.08)', fill:true, borderWidth:2, tension:0.3, pointRadius:2 },
+        { label:'Dogs + Puppies', data:dogs.map(d=>d.count), borderColor:BLUE, backgroundColor:'rgba(29,78,216,0.06)', fill:true, borderWidth:2, tension:0.3, pointRadius:2 },
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12}},tooltip:{mode:'index'}},
+      scales:{
+        y:{beginAtZero:true,grid:{color:'rgba(199,91,58,0.08)'},ticks:{font:{size:11}}},
+        x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:18}}
+      }
+    }
+  });
+}
+
+// ── Seasonal chart ────────────────────────────────────────────────────────────
+function buildSeasonalChart() {
+  const sea = DATA.seasonal;
+  const colors = sea.map(s => {
+    const mo = DATA.seasonal.indexOf(s) + 1;
+    return mo >= 6 && mo <= 8 ? 'rgba(185,28,28,0.75)' : mo >= 12 || mo <= 2 ? 'rgba(21,128,61,0.7)' : 'rgba(199,91,58,0.6)';
+  });
+  if(seasonalChart) seasonalChart.destroy();
+  seasonalChart = new Chart(document.getElementById('seasonalChart'), {
+    type: 'bar',
+    data: {
+      labels: sea.map(s=>s.month),
+      datasets: [{ label:'Avg monthly intake', data:sea.map(s=>s.avg), backgroundColor:colors, borderRadius:5, borderSkipped:false }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw.toLocaleString()} avg intake`}}},
+      scales:{
+        y:{beginAtZero:false,grid:{color:'rgba(199,91,58,0.08)'},ticks:{font:{size:11}}},
+        x:{grid:{display:false},ticks:{font:{size:11}}}
+      }
+    }
+  });
+}
+
+// ── View toggle ───────────────────────────────────────────────────────────────
+function setView(view, btn) {
+  currentView = view;
+  document.querySelectorAll('.ctrl-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+
+  document.getElementById('shelter-selector').style.display = view==='shelter' ? 'block' : 'none';
+  document.getElementById('species-view').style.display = view==='species' ? 'block' : 'none';
+
+  if(view==='shelter') {
+    document.getElementById('main-chart-card').style.display = 'none';
+    buildShelterChart(currentShelter);
+  } else if(view==='species') {
+    document.getElementById('main-chart-card').style.display = 'none';
+    buildSpeciesChart();
+  } else {
+    document.getElementById('main-chart-card').style.display = 'block';
+    buildMainChart();
+  }
+}
+
+function selectShelter(shelter, el) {
+  currentShelter = shelter;
+  document.querySelectorAll('.sh-pill').forEach(p => p.classList.remove('active'));
+  if(el) el.classList.add('active');
+  buildShelterChart(shelter);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+updateKPIs();
+updateAlerts();
+buildMainChart();
+buildSeasonalChart();
+</script>
+</body>
+</html>

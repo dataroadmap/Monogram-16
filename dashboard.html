@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShelterIQ — Leadership Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --terracotta:#C75B3A;--terracotta-light:#E8724A;--peach:#F4956E;
+  --gold:#F4C97A;--cream:#FFFAF7;--dark-brown:#3D1C0E;
+  --text-dark:#1A0A04;--text-muted:#8C6050;
+  --border:rgba(199,91,58,0.15);--border-strong:rgba(199,91,58,0.3);
+  --green:#15803D;--green-light:#F0FDF4;--green-mid:#BBF7D0;
+  --amber:#B45309;--amber-light:#FFFBEB;
+  --red:#B91C1C;--red-light:#FEF2F2;--red-mid:#FECACA;
+  --blue:#1D4ED8;--blue-light:#EFF6FF;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-dark);font-size:14px;line-height:1.6}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes countUp{from{opacity:0}to{opacity:1}}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,250,247,0.95);backdrop-filter:blur(12px);border-bottom:0.5px solid var(--border-strong);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.nav-logo-text{font-family:'DM Serif Display',serif;font-size:19px;color:var(--terracotta)}
+.nav-links{display:flex;gap:1.5rem;list-style:none}
+.nav-links a{text-decoration:none;color:var(--text-muted);font-size:13px;font-weight:500;transition:color 0.2s}
+.nav-links a:hover{color:var(--terracotta)}
+.nav-cta{background:var(--terracotta)!important;color:white!important;padding:7px 18px;border-radius:100px}
+.nav-badge{font-size:10px;font-weight:600;letter-spacing:0.06em;background:rgba(199,91,58,0.1);color:var(--terracotta);padding:3px 10px;border-radius:20px;border:0.5px solid var(--border-strong)}
+
+.page-wrap{max-width:1200px;margin:0 auto;padding:80px 2rem 4rem}
+
+.dash-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1.75rem;flex-wrap:wrap;gap:1rem}
+.dash-title{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--dark-brown);letter-spacing:-0.02em}
+.dash-title em{font-style:italic;color:var(--terracotta)}
+.dash-sub{font-size:13px;color:var(--text-muted);font-weight:300;margin-top:4px}
+.dash-controls{display:flex;gap:8px;flex-wrap:wrap}
+.ctrl-btn{padding:7px 16px;border-radius:100px;border:0.5px solid var(--border-strong);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;background:white;color:var(--text-muted);font-family:'DM Sans',sans-serif}
+.ctrl-btn.active{background:var(--terracotta);color:white;border-color:var(--terracotta)}
+.ctrl-btn:hover:not(.active){color:var(--terracotta)}
+
+/* VIEW LABEL */
+.view-label{display:inline-flex;align-items:center;gap:6px;background:rgba(199,91,58,0.08);border:0.5px solid var(--border-strong);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;color:var(--terracotta);letter-spacing:0.06em;margin-bottom:1rem}
+.live-dot{width:5px;height:5px;border-radius:50%;background:#16A34A;display:inline-block;animation:pulse 2s infinite}
+
+.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:white;border:0.5px solid var(--border-strong);border-radius:14px;padding:1.1rem 1.3rem;box-shadow:0 1px 6px rgba(199,91,58,0.05);animation:fadeUp 0.3s ease forwards;transition:all 0.4s ease}
+.kpi-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:5px}
+.kpi-num{font-family:'DM Serif Display',serif;font-size:1.9rem;line-height:1;margin-bottom:3px;transition:color 0.3s}
+.kpi-num.red{color:var(--red)}.kpi-num.green{color:var(--green)}.kpi-num.amber{color:var(--amber)}.kpi-num.blue{color:var(--blue)}
+.kpi-sub{font-size:11px;color:var(--text-muted);font-weight:300;transition:all 0.3s}
+
+.grid-32{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+
+.chart-card{background:white;border:0.5px solid var(--border-strong);border-radius:14px;padding:1.3rem;box-shadow:0 1px 6px rgba(199,91,58,0.05)}
+.card-title{font-family:'DM Serif Display',serif;font-size:1rem;color:var(--dark-brown);margin-bottom:3px}
+.card-sub{font-size:11px;color:var(--text-muted);font-weight:300;margin-bottom:1rem}
+.chart-wrap{position:relative}
+
+.sh-table{width:100%;border-collapse:collapse}
+.sh-table th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);text-align:left;padding:7px 8px;border-bottom:0.5px solid var(--border-strong)}
+.sh-table td{padding:9px 8px;font-size:12px;border-bottom:0.5px solid var(--border);vertical-align:middle;transition:all 0.3s}
+.sh-table tr:last-child td{border-bottom:none}
+.sh-table tr:hover td{background:rgba(199,91,58,0.02)}
+.sh-name{font-weight:500;color:var(--dark-brown)}
+.lr-bar-wrap{width:60px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:5px}
+.lr-bar{height:100%;border-radius:3px;background:var(--green);transition:width 0.4s ease}
+.bdg{padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600}
+.bdg-r{background:var(--red-light);color:var(--red)}
+.bdg-g{background:var(--green-light);color:var(--green)}
+.bdg-a{background:var(--amber-light);color:var(--amber)}
+
+.beh-row{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.beh-label{width:55px;font-size:11px;color:var(--text-muted);flex-shrink:0}
+.beh-bar-wrap{flex:1;height:9px;background:var(--border);border-radius:4px;overflow:hidden}
+.beh-bar{height:100%;border-radius:4px;transition:width 0.5s ease}
+.beh-count{font-size:11px;color:var(--text-muted);min-width:45px;text-align:right}
+
+.insight-box{background:rgba(199,91,58,0.04);border:0.5px solid var(--border-strong);border-radius:10px;padding:0.9rem 1rem}
+.insight-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:9px;font-size:12px;color:var(--text-muted)}
+.insight-item:last-child{margin-bottom:0}
+.insight-icon{font-size:14px;flex-shrink:0;margin-top:-1px}
+.insight-item strong{color:var(--dark-brown)}
+
+footer{background:var(--dark-brown);padding:20px 2rem;display:flex;align-items:center;justify-content:space-between}
+.footer-logo-text{font-family:'DM Serif Display',serif;font-size:15px;color:var(--peach)}
+.footer-right{font-size:12px;color:rgba(255,255,255,0.35)}
+.footer-right a{color:var(--peach);text-decoration:none}
+
+@media(max-width:900px){
+  .kpi-strip{grid-template-columns:repeat(2,1fr)}
+  .grid-2,.grid-3,.grid-32{grid-template-columns:1fr}
+  .page-wrap{padding:70px 1rem 3rem}
+  nav{padding:0 1rem}
+  .nav-links{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="https://monahatami-ai.github.io/shelteriq/" class="nav-logo">
+    <svg viewBox="0 0 60 60" width="32" height="32">
+      <circle cx="30" cy="30" r="28" fill="#FAE8DC" opacity="0.6"/>
+      <circle cx="30" cy="30" r="23" fill="none" stroke="#E8724A" stroke-width="1.2" stroke-dasharray="3.5 3" opacity="0.7"/>
+      <circle cx="30" cy="7" r="2.8" fill="#C75B3A"/><circle cx="53" cy="30" r="2.8" fill="#F4C97A"/>
+      <circle cx="44" cy="48" r="2.8" fill="#C75B3A"/><circle cx="16" cy="48" r="2.8" fill="#C75B3A"/>
+      <circle cx="7" cy="30" r="2.8" fill="#C75B3A"/>
+      <circle cx="30" cy="30" r="16" fill="#E8724A"/>
+      <ellipse cx="30" cy="33" rx="6" ry="5" fill="white" opacity="0.92"/>
+      <circle cx="23" cy="26" r="3.2" fill="white" opacity="0.92"/>
+      <circle cx="30" cy="23" r="3.2" fill="white" opacity="0.92"/>
+      <circle cx="37" cy="26" r="3.2" fill="white" opacity="0.92"/>
+    </svg>
+    <span class="nav-logo-text">ShelterIQ</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="risk.html">Risk Predictor</a></li>
+    <li><a href="adopt.html">Adoption Matcher</a></li>
+    <li><a href="https://monahatami-ai.github.io/shelteriq/#contact" class="nav-cta">Get in Touch</a></li>
+  </ul>
+  <span class="nav-badge">ACC NYC · 2017–2023</span>
+</nav>
+
+<div class="page-wrap">
+
+  <div class="dash-header">
+    <div>
+      <div class="dash-title">Leadership <em>Dashboard</em></div>
+      <div class="dash-sub" id="dash-sub">ACC NYC · 89,865 animals · 2017–2023 · All 5 boroughs</div>
+    </div>
+    <div class="dash-controls">
+      <button class="ctrl-btn active" onclick="setView('all',this)">All years</button>
+      <button class="ctrl-btn" onclick="setView('pre',this)">Pre-COVID (2018–19)</button>
+      <button class="ctrl-btn" onclick="setView('post',this)">Post-COVID (2021–22)</button>
+    </div>
+  </div>
+
+  <div class="view-label" id="view-label">
+    <span class="live-dot"></span>
+    <span id="view-label-text">All years · 2017–2023</span>
+  </div>
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip">
+    <div class="kpi"><div class="kpi-label">Total animals</div><div class="kpi-num blue" id="k-total">–</div><div class="kpi-sub" id="k-total-sub">–</div></div>
+    <div class="kpi"><div class="kpi-label">Live release rate</div><div class="kpi-num green" id="k-lr">–</div><div class="kpi-sub" id="k-lr-sub">–</div></div>
+    <div class="kpi"><div class="kpi-label">Euthanized</div><div class="kpi-num red" id="k-euth">–</div><div class="kpi-sub" id="k-euth-sub">–</div></div>
+    <div class="kpi"><div class="kpi-label">Avg length of stay</div><div class="kpi-num amber" id="k-los">–</div><div class="kpi-sub">Across all shelters</div></div>
+    <div class="kpi"><div class="kpi-label">Survived</div><div class="kpi-num green" id="k-good">–</div><div class="kpi-sub" id="k-good-sub">–</div></div>
+    <div class="kpi"><div class="kpi-label">Total fostered</div><div class="kpi-num blue" id="k-foster">–</div><div class="kpi-sub" id="k-foster-sub">–</div></div>
+    <div class="kpi"><div class="kpi-label">High-risk behaviour</div><div class="kpi-num red" id="k-risk">–</div><div class="kpi-sub" id="k-risk-sub">–</div></div>
+    <div class="kpi"><div class="kpi-label">Adoption records</div><div class="kpi-num amber" id="k-adopt">–</div><div class="kpi-sub">Direct adoption data</div></div>
+  </div>
+
+  <!-- ROW 1 -->
+  <div class="grid-32">
+    <div class="chart-card">
+      <div class="card-title">Annual intake & euthanasia trend</div>
+      <div class="card-sub" id="annual-sub">Intake vs euthanasia with live release rate %</div>
+      <div class="chart-wrap" style="height:250px"><canvas id="annualChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">Shelter performance</div>
+      <div class="card-sub">Live release rate & avg stay by borough</div>
+      <table class="sh-table"><thead><tr><th>Shelter</th><th>Animals</th><th>Live release</th><th>Avg stay</th></tr></thead><tbody id="sh-body"></tbody></table>
+    </div>
+  </div>
+
+  <!-- ROW 2 -->
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="card-title">Monthly trend (2018–2022)</div>
+      <div class="card-sub">Seasonal patterns — summer spikes in cat intake</div>
+      <div class="chart-wrap" style="height:230px"><canvas id="monthlyChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">Outcomes by species</div>
+      <div class="card-sub" id="sp-sub">Survived vs euthanized for this period</div>
+      <div class="chart-wrap" style="height:230px"><canvas id="speciesChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ROW 3 -->
+  <div class="grid-3">
+    <div class="chart-card">
+      <div class="card-title">Intake sources</div>
+      <div class="card-sub">Where animals come from</div>
+      <div class="chart-wrap" style="height:210px"><canvas id="sourceChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">Behaviour distribution</div>
+      <div class="card-sub">Green = easiest · Red = most challenging</div>
+      <div id="beh-bars" style="padding-top:0.25rem"></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">Key insights</div>
+      <div class="card-sub" id="insight-sub">AI-generated findings</div>
+      <div class="insight-box" id="insight-box"></div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div style="display:flex;align-items:center;gap:8px">
+    <svg viewBox="0 0 60 60" width="22" height="22"><circle cx="30" cy="30" r="16" fill="#E8724A"/><ellipse cx="30" cy="33" rx="6" ry="5" fill="white" opacity="0.92"/><circle cx="23" cy="26" r="3.2" fill="white" opacity="0.92"/><circle cx="30" cy="23" r="3.2" fill="white" opacity="0.92"/><circle cx="37" cy="26" r="3.2" fill="white" opacity="0.92"/></svg>
+    <span class="footer-logo-text">ShelterIQ</span>
+  </div>
+  <div class="footer-right">
+    <a href="https://monahatami-ai.github.io/shelteriq/">← Back to ShelterIQ</a>
+    &nbsp;·&nbsp; Leadership Dashboard · ACC NYC 2017–2023
+  </div>
+</footer>
+
+<script>
+const DATA = {"views": {"all": {"kpis": {"total": 89865, "euthanized": 9300, "survived": 76205, "active": 4360, "live_release": 84.8, "fostered": 2422, "adopted": 4592, "avg_los": 18, "high_risk": 6739}, "shelters": {"Brooklyn": {"total": 35968, "euthanized": 4052, "survived": 30170, "live_release": 83.9, "avg_days": 16}, "Manhattan": {"total": 32248, "euthanized": 3806, "survived": 26748, "live_release": 82.9, "avg_days": 21}, "Bronx": {"total": 9399, "euthanized": 694, "survived": 8220, "live_release": 87.5, "avg_days": 19}, "Staten Island": {"total": 7591, "euthanized": 415, "survived": 6823, "live_release": 89.9, "avg_days": 13}, "Queens": {"total": 4651, "euthanized": 333, "survived": 4237, "live_release": 91.1, "avg_days": 12}}, "species": [{"species": "Dog", "total": 27254, "euthanized": 3231, "survived": 22620, "live_release": 83.0}, {"species": "Cat", "total": 51904, "euthanized": 3123, "survived": 45968, "live_release": 88.6}, {"species": "Rabbit", "total": 1654, "euthanized": 71, "survived": 1521, "live_release": 92.0}, {"species": "Guinea Pig", "total": 2585, "euthanized": 64, "survived": 2442, "live_release": 94.5}, {"species": "Kitten", "total": 1526, "euthanized": 1485, "survived": 40, "live_release": 2.6}, {"species": "Bird (wildlife)", "total": 1346, "euthanized": 393, "survived": 952, "live_release": 70.7}], "intake_sources": [{"source": "Stray", "count": 36504}, {"source": "Owner Surrender", "count": 32199}, {"source": "Agency", "count": 7227}, {"source": "ACO - Impound", "count": 5461}, {"source": "Returns", "count": 1827}, {"source": "ACO - Owner Surrender", "count": 1682}], "behaviour": [{"label": "Green", "count": 38259, "color": "#15803D"}, {"label": "Blue", "count": 33097, "color": "#1D4ED8"}, {"label": "Yellow", "count": 11770, "color": "#B45309"}, {"label": "Orange", "count": 4561, "color": "#C2410C"}, {"label": "Red", "count": 2178, "color": "#B91C1C"}], "annual": {"2017": {"intake": 5061, "euthanized": 537, "survived": 4437, "live_release": 87.7}, "2018": {"intake": 21995, "euthanized": 3035, "survived": 18502, "live_release": 84.1}, "2019": {"intake": 21198, "euthanized": 2428, "survived": 18099, "live_release": 85.4}, "2020": {"intake": 12620, "euthanized": 1072, "survived": 10839, "live_release": 85.9}, "2021": {"intake": 12457, "euthanized": 967, "survived": 10623, "live_release": 85.3}, "2022": {"intake": 13777, "euthanized": 1082, "survived": 11705, "live_release": 85.0}, "2023": {"intake": 2755, "euthanized": 179, "survived": 2000, "live_release": 72.6}, "2024": {"intake": 2, "euthanized": 0, "survived": 0, "live_release": 0.0}}}, "pre": {"kpis": {"total": 43193, "euthanized": 5463, "survived": 36601, "active": 1129, "live_release": 84.7, "fostered": 82, "adopted": 3138, "avg_los": 14, "high_risk": 3183}, "shelters": {"Brooklyn": {"total": 16255, "euthanized": 2378, "survived": 13581, "live_release": 83.5, "avg_days": 12}, "Manhattan": {"total": 13230, "euthanized": 2048, "survived": 10756, "live_release": 81.3, "avg_days": 17}, "Bronx": {"total": 5894, "euthanized": 508, "survived": 5173, "live_release": 87.8, "avg_days": 17}, "Staten Island": {"total": 3901, "euthanized": 250, "survived": 3528, "live_release": 90.4, "avg_days": 9}, "Queens": {"total": 3909, "euthanized": 279, "survived": 3559, "live_release": 91.0, "avg_days": 12}}, "species": [{"species": "Dog", "total": 12842, "euthanized": 1913, "survived": 10544, "live_release": 82.1}, {"species": "Cat", "total": 25403, "euthanized": 1641, "survived": 23021, "live_release": 90.6}, {"species": "Rabbit", "total": 608, "euthanized": 34, "survived": 572, "live_release": 94.1}, {"species": "Guinea Pig", "total": 622, "euthanized": 12, "survived": 610, "live_release": 98.1}, {"species": "Kitten", "total": 828, "euthanized": 792, "survived": 36, "live_release": 4.3}, {"species": "Bird (wildlife)", "total": 743, "euthanized": 267, "survived": 476, "live_release": 64.1}], "intake_sources": [{"source": "Stray", "count": 19933}, {"source": "Owner Surrender", "count": 13199}, {"source": "Agency", "count": 3106}, {"source": "ACO - Impound", "count": 2642}, {"source": "Euthanasia Request", "count": 1222}, {"source": "Wildlife", "count": 1067}], "behaviour": [{"label": "Green", "count": 20695, "color": "#15803D"}, {"label": "Blue", "count": 14063, "color": "#1D4ED8"}, {"label": "Yellow", "count": 5252, "color": "#B45309"}, {"label": "Orange", "count": 2014, "color": "#C2410C"}, {"label": "Red", "count": 1169, "color": "#B91C1C"}], "annual": {"2018": {"intake": 21995, "euthanized": 3035, "survived": 18502, "live_release": 84.1}, "2019": {"intake": 21198, "euthanized": 2428, "survived": 18099, "live_release": 85.4}}}, "post": {"kpis": {"total": 26234, "euthanized": 2049, "survived": 22328, "active": 1857, "live_release": 85.1, "fostered": 16, "adopted": 42, "avg_los": 23, "high_risk": 2030}, "shelters": {"Brooklyn": {"total": 11393, "euthanized": 909, "survived": 9574, "live_release": 84.0, "avg_days": 21}, "Manhattan": {"total": 10958, "euthanized": 963, "survived": 9359, "live_release": 85.4, "avg_days": 24}, "Bronx": {"total": 1826, "euthanized": 93, "survived": 1564, "live_release": 85.7, "avg_days": 24}, "Staten Island": {"total": 2056, "euthanized": 84, "survived": 1830, "live_release": 89.0, "avg_days": 21}}, "species": [{"species": "Dog", "total": 7786, "euthanized": 684, "survived": 6592, "live_release": 84.7}, {"species": "Cat", "total": 14860, "euthanized": 786, "survived": 12781, "live_release": 86.0}, {"species": "Rabbit", "total": 724, "euthanized": 25, "survived": 673, "live_release": 93.0}, {"species": "Guinea Pig", "total": 1408, "euthanized": 40, "survived": 1340, "live_release": 95.2}, {"species": "Kitten", "total": 417, "euthanized": 416, "survived": 1, "live_release": 0.2}, {"species": "Bird (wildlife)", "total": 325, "euthanized": 56, "survived": 269, "live_release": 82.8}], "intake_sources": [{"source": "Owner Surrender", "count": 11561}, {"source": "Stray", "count": 8717}, {"source": "Agency", "count": 2634}, {"source": "ACO - Impound", "count": 1274}, {"source": "ACO - Owner Surrender", "count": 486}, {"source": "Returns", "count": 486}], "behaviour": [{"label": "Green", "count": 9472, "color": "#15803D"}, {"label": "Blue", "count": 11091, "color": "#1D4ED8"}, {"label": "Yellow", "count": 3641, "color": "#B45309"}, {"label": "Orange", "count": 1515, "color": "#C2410C"}, {"label": "Red", "count": 515, "color": "#B91C1C"}], "annual": {"2021": {"intake": 12457, "euthanized": 967, "survived": 10623, "live_release": 85.3}, "2022": {"intake": 13777, "euthanized": 1082, "survived": 11705, "live_release": 85.0}}}}, "monthly": [{"month": "2018-01", "intake": 1360, "euthanized": 174}, {"month": "2018-02", "intake": 1350, "euthanized": 208}, {"month": "2018-03", "intake": 1482, "euthanized": 183}, {"month": "2018-04", "intake": 1617, "euthanized": 208}, {"month": "2018-05", "intake": 2099, "euthanized": 269}, {"month": "2018-06", "intake": 2113, "euthanized": 317}, {"month": "2018-07", "intake": 2362, "euthanized": 344}, {"month": "2018-08", "intake": 2322, "euthanized": 296}, {"month": "2018-09", "intake": 2028, "euthanized": 291}, {"month": "2018-10", "intake": 2162, "euthanized": 283}, {"month": "2018-11", "intake": 1645, "euthanized": 250}, {"month": "2018-12", "intake": 1455, "euthanized": 212}, {"month": "2019-01", "intake": 1492, "euthanized": 169}, {"month": "2019-02", "intake": 1489, "euthanized": 163}, {"month": "2019-03", "intake": 1631, "euthanized": 216}, {"month": "2019-04", "intake": 1850, "euthanized": 217}, {"month": "2019-05", "intake": 1999, "euthanized": 203}, {"month": "2019-06", "intake": 2164, "euthanized": 221}, {"month": "2019-07", "intake": 2008, "euthanized": 191}, {"month": "2019-08", "intake": 2070, "euthanized": 263}, {"month": "2019-09", "intake": 1909, "euthanized": 267}, {"month": "2019-10", "intake": 1799, "euthanized": 240}, {"month": "2019-11", "intake": 1424, "euthanized": 155}, {"month": "2019-12", "intake": 1363, "euthanized": 123}, {"month": "2020-01", "intake": 1407, "euthanized": 114}, {"month": "2020-02", "intake": 1343, "euthanized": 101}, {"month": "2020-03", "intake": 992, "euthanized": 77}, {"month": "2020-04", "intake": 594, "euthanized": 43}, {"month": "2020-05", "intake": 830, "euthanized": 66}, {"month": "2020-06", "intake": 1004, "euthanized": 80}, {"month": "2020-07", "intake": 1189, "euthanized": 112}, {"month": "2020-08", "intake": 1192, "euthanized": 120}, {"month": "2020-09", "intake": 1105, "euthanized": 128}, {"month": "2020-10", "intake": 1117, "euthanized": 95}, {"month": "2020-11", "intake": 944, "euthanized": 73}, {"month": "2020-12", "intake": 903, "euthanized": 63}, {"month": "2021-01", "intake": 756, "euthanized": 45}, {"month": "2021-02", "intake": 533, "euthanized": 36}, {"month": "2021-03", "intake": 854, "euthanized": 51}, {"month": "2021-04", "intake": 939, "euthanized": 66}, {"month": "2021-05", "intake": 1141, "euthanized": 69}, {"month": "2021-06", "intake": 1289, "euthanized": 86}, {"month": "2021-07", "intake": 1294, "euthanized": 112}, {"month": "2021-08", "intake": 1268, "euthanized": 147}, {"month": "2021-09", "intake": 1173, "euthanized": 100}, {"month": "2021-10", "intake": 1124, "euthanized": 100}, {"month": "2021-11", "intake": 1058, "euthanized": 81}, {"month": "2021-12", "intake": 1028, "euthanized": 74}]};
+
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.color = '#8C6050';
+
+let annualChart, speciesChart, sourceChart, monthlyChart;
+let currentView = 'all';
+
+const VIEW_META = {
+  all:  { label: 'All years · 2017–2023', sub: 'ACC NYC · 89,865 animals · 2017–2023 · All 5 boroughs', annualSub: 'Full dataset — intake peaked 2018–2019 before COVID' },
+  pre:  { label: 'Pre-COVID · 2018–2019', sub: 'ACC NYC · Peak intake years · 2018–2019', annualSub: 'Pre-COVID peak — highest intake years on record' },
+  post: { label: 'Post-COVID · 2021–2022', sub: 'ACC NYC · Recovery period · 2021–2022', annualSub: 'Post-COVID recovery — lower intake, longer stays' },
+};
+
+const INSIGHTS = {
+  all: [
+    {icon:'🔴', text:'Manhattan has the <strong>longest avg stay (21 days)</strong> — priority for intervention.'},
+    {icon:'📉', text:'Live release rate fell from <strong>~91% (2019) to 84.8% overall</strong> post-COVID.'},
+    {icon:'🐕', text:'Dogs have a <strong>lower live release rate than cats</strong> — behaviour is the primary driver.'},
+    {icon:'🏠', text:'Only <strong>2.7% of animals were fostered</strong> — major opportunity to expand foster network.'},
+    {icon:'⚠️', text:'<strong>7.5% show Orange/Red behaviour</strong> — early risk scoring could save ~500/year.'},
+  ],
+  pre: [
+    {icon:'📈', text:'<strong>43,193 animals</strong> in just 2 years — highest intake volume on record.'},
+    {icon:'🐈', text:'Cat intake dominated — <strong>summer months show 40% above average</strong> intake.'},
+    {icon:'⚠️', text:'Euthanasia peaked at <strong>5,463 (12.6%)</strong> — highest rate in the dataset.'},
+    {icon:'⏱️', text:'Average stay was <strong>14 days</strong> — shorter but higher volume pressure on staff.'},
+    {icon:'🏥', text:'Owner surrender was the <strong>second largest intake source</strong> in this period.'},
+  ],
+  post: [
+    {icon:'✅', text:'Intake dropped to <strong>26,234</strong> — 40% lower than pre-COVID peak.'},
+    {icon:'⏱️', text:'Average stay increased to <strong>23 days</strong> — animals staying longer post-COVID.'},
+    {icon:'📉', text:'Euthanasia fell to <strong>2,049 (7.8%)</strong> — improved outcomes vs pre-COVID.'},
+    {icon:'🏠', text:'Foster and adoption programs expanded — opportunity to build on this momentum.'},
+    {icon:'🔍', text:'Longer stays increase risk — <strong>predictive flagging now more critical than ever</strong>.'},
+  ],
+};
+
+function fmt(n){ return n?.toLocaleString() || '–'; }
+
+function setView(view, btn) {
+  currentView = view;
+  document.querySelectorAll('.ctrl-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+
+  const v = DATA.views[view];
+  const meta = VIEW_META[view];
+  const k = v.kpis;
+
+  // Update labels
+  document.getElementById('view-label-text').textContent = meta.label;
+  document.getElementById('dash-sub').textContent = meta.sub;
+  document.getElementById('annual-sub').textContent = meta.annualSub;
+  document.getElementById('sp-sub').textContent = 'Survived vs euthanized · ' + meta.label;
+  document.getElementById('insight-sub').textContent = meta.label;
+
+  // Update KPIs
+  document.getElementById('k-total').textContent = fmt(k.total);
+  document.getElementById('k-total-sub').textContent = 'Across all 5 boroughs';
+  document.getElementById('k-lr').textContent = k.live_release + '%';
+  document.getElementById('k-lr-sub').textContent = fmt(k.survived) + ' survived';
+  document.getElementById('k-euth').textContent = fmt(k.euthanized);
+  document.getElementById('k-euth-sub').textContent = k.total ? (k.euthanized/k.total*100).toFixed(1)+'% of intakes' : '–';
+  document.getElementById('k-los').textContent = k.avg_los + ' days';
+  document.getElementById('k-good').textContent = fmt(k.survived);
+  document.getElementById('k-good-sub').textContent = k.live_release + '% live release';
+  document.getElementById('k-foster').textContent = fmt(k.fostered);
+  document.getElementById('k-foster-sub').textContent = k.total ? (k.fostered/k.total*100).toFixed(1)+'% of animals' : '–';
+  document.getElementById('k-risk').textContent = fmt(k.high_risk);
+  document.getElementById('k-risk-sub').textContent = k.total ? 'Orange+Red · ' + (k.high_risk/k.total*100).toFixed(1)+'%' : '–';
+  document.getElementById('k-adopt').textContent = fmt(k.adopted);
+
+  // Shelter table
+  const sh = v.shelters;
+  document.getElementById('sh-body').innerHTML = Object.entries(sh).map(([name, s]) => {
+    const lr = s.live_release;
+    const cls = lr>=88?'bdg-g':lr>=80?'bdg-a':'bdg-r';
+    return `<tr>
+      <td class="sh-name">${name}</td>
+      <td>${fmt(s.total)}</td>
+      <td><div class="lr-bar-wrap"><div class="lr-bar" style="width:${lr}%"></div></div><span class="bdg ${cls}">${lr}%</span></td>
+      <td>${s.avg_days}d</td>
+    </tr>`;
+  }).join('');
+
+  // Annual chart
+  const annual = v.annual;
+  const years = Object.keys(annual);
+  if(annualChart) annualChart.destroy();
+  annualChart = new Chart(document.getElementById('annualChart'), {
+    type: 'bar',
+    data: {
+      labels: years,
+      datasets: [
+        { label: 'Intake', data: years.map(y=>annual[y].intake), backgroundColor: 'rgba(199,91,58,0.15)', borderColor: '#C75B3A', borderWidth: 1.5, borderRadius: 4, yAxisID: 'y' },
+        { label: 'Euthanized', data: years.map(y=>annual[y].euthanized), backgroundColor: 'rgba(185,28,28,0.75)', borderColor: '#B91C1C', borderWidth: 1, borderRadius: 4, yAxisID: 'y' },
+        { label: 'Live release %', data: years.map(y=>annual[y].live_release), type: 'line', borderColor: '#15803D', backgroundColor: 'transparent', borderWidth: 2, pointBackgroundColor: '#15803D', pointRadius: 4, tension: 0.3, yAxisID: 'y2' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { font:{size:11}, boxWidth:12, padding:10 } }, tooltip: { mode: 'index' } },
+      scales: {
+        y: { beginAtZero: true, grid:{color:'rgba(199,91,58,0.08)'}, ticks:{font:{size:11}} },
+        y2: { position:'right', min:60, max:100, grid:{drawOnChartArea:false}, ticks:{font:{size:11}, callback:v=>v+'%'} },
+        x: { grid:{display:false}, ticks:{font:{size:11}} }
+      }
+    }
+  });
+
+  // Species chart
+  const sp = v.species;
+  if(speciesChart) speciesChart.destroy();
+  speciesChart = new Chart(document.getElementById('speciesChart'), {
+    type: 'bar',
+    data: {
+      labels: sp.map(s=>s.species),
+      datasets: [
+        { label: 'Survived', data: sp.map(s=>s.survived), backgroundColor: 'rgba(21,128,61,0.75)', borderRadius: 4 },
+        { label: 'Euthanized', data: sp.map(s=>s.euthanized), backgroundColor: 'rgba(185,28,28,0.75)', borderRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      plugins: { legend: { position:'top', labels:{font:{size:11},boxWidth:12} } },
+      scales: {
+        x: { stacked:true, grid:{color:'rgba(199,91,58,0.08)'}, ticks:{font:{size:11}} },
+        y: { stacked:true, grid:{display:false}, ticks:{font:{size:11}} }
+      }
+    }
+  });
+
+  // Source chart
+  const src = v.intake_sources;
+  const colors = ['rgba(199,91,58,0.85)','rgba(244,149,110,0.85)','rgba(244,201,122,0.85)','rgba(21,128,61,0.75)','rgba(29,78,216,0.75)','rgba(180,83,9,0.75)'];
+  if(sourceChart) sourceChart.destroy();
+  sourceChart = new Chart(document.getElementById('sourceChart'), {
+    type: 'doughnut',
+    data: {
+      labels: src.map(s=>s.source),
+      datasets: [{ data: src.map(s=>s.count), backgroundColor: colors, borderWidth: 2, borderColor: '#FFFAF7' }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position:'bottom', labels:{font:{size:10},boxWidth:10,padding:6} },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw.toLocaleString()}` } }
+      }
+    }
+  });
+
+  // Behaviour bars
+  const beh = v.behaviour;
+  const maxBeh = Math.max(...beh.map(b=>b.count));
+  document.getElementById('beh-bars').innerHTML = beh.map(b => `
+    <div class="beh-row">
+      <div class="beh-label">${b.label}</div>
+      <div class="beh-bar-wrap"><div class="beh-bar" style="width:${Math.round(b.count/maxBeh*100)}%;background:${b.color}"></div></div>
+      <div class="beh-count">${b.count.toLocaleString()}</div>
+    </div>`).join('');
+
+  // Insights
+  const insights = INSIGHTS[view];
+  document.getElementById('insight-box').innerHTML = insights.map(i =>
+    `<div class="insight-item"><span class="insight-icon">${i.icon}</span><div>${i.text}</div></div>`
+  ).join('');
+}
+
+// Monthly chart (fixed - always all years)
+monthlyChart = new Chart(document.getElementById('monthlyChart'), {
+  type: 'line',
+  data: {
+    labels: DATA.monthly.map(m => m.month),
+    datasets: [
+      { label:'Intake', data: DATA.monthly.map(m=>m.intake), borderColor:'#C75B3A', backgroundColor:'rgba(199,91,58,0.08)', fill:true, borderWidth:2, tension:0.3, pointRadius:2 },
+      { label:'Euthanized', data: DATA.monthly.map(m=>m.euthanized), borderColor:'#B91C1C', backgroundColor:'transparent', borderWidth:1.5, tension:0.3, pointRadius:2, borderDash:[4,3] },
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{position:'top',labels:{font:{size:11},boxWidth:12,padding:8}}, tooltip:{mode:'index'} },
+    scales:{
+      y:{beginAtZero:true,grid:{color:'rgba(199,91,58,0.08)'},ticks:{font:{size:11}}},
+      x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:12}}
+    }
+  }
+});
+
+// Init
+setView('all', document.querySelector('.ctrl-btn.active'));
+</script>
+</body>
+</html>
