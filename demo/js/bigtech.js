@@ -42,9 +42,9 @@
       value: c => c.netIncome * 1e9, fmt: v => money(v),
     },
     margin: {
-      label: 'Out of every $100', q: 'How much of each $100 of sales is kept as profit?',
-      explain: '<b>Profit margin</b> = profit ÷ revenue. A 25% margin means that out of every $100 customers pay, the company keeps $25 as profit.',
-      value: c => c.netIncome / c.revenue, fmt: v => (v < 0 ? '−' : '') + perHundred(Math.abs(v)) + (v < 0 ? ' lost' : ' kept'),
+      label: 'Profit per $100', q: 'Out of every $100 of sales, how much is profit?',
+      explain: 'Imagine customers spend <b>$100</b> with the company. It uses part of that money to pay its costs: workers, factories, research, taxes. Whatever is <b>left over is profit</b>. Nvidia: $100 in, about $44 spent on costs, <b>$56 left as profit</b>. In finance this is called the <b>profit margin</b> (56%).',
+      value: c => c.netIncome / c.revenue, fmt: v => v < 0 ? perHundred(-v) + ' loss' : perHundred(v) + ' profit',
     },
     growth: {
       label: 'Growth', q: 'Who grew the fastest in one year?',
@@ -112,14 +112,14 @@
         <div><span>Employees</span><b>${c.employees.toLocaleString()}</b></div>
       </div>
       <div class="bt-hundred">
-        <p><b>Out of every ${perHundred(1)} a customer pays:</b></p>
-        <div class="bt-split" role="img" aria-label="${margin >= 0 ? `${keep.toFixed(0)} percent kept as profit` : 'the company lost money'}">
+        <p><b>When customers spend ${perHundred(1)}:</b></p>
+        <div class="bt-split" role="img" aria-label="${margin >= 0 ? `${keep.toFixed(0)} percent left over as profit` : 'the company lost money'}">
           ${margin >= 0 ? `<span class="kept" style="width:${keep}%"></span><span class="spent" style="width:${100 - keep}%"></span>` : `<span class="spent" style="width:100%"></span>`}
         </div>
         <div class="bt-split-legend">
           ${margin >= 0
-            ? `<span><i class="kept"></i>${perHundred(margin)} kept as profit</span><span><i class="spent"></i>${perHundred(1 - margin)} spent on costs</span>`
-            : `<span><i class="spent"></i>All of it went to costs, plus ${perHundred(-margin)} more: a loss</span>`}
+            ? `<span><i class="kept"></i>${perHundred(margin)} left over = profit</span><span><i class="spent"></i>${perHundred(1 - margin)} spent on costs</span>`
+            : `<span><i class="spent"></i>Costs were higher than sales: ${perHundred(-margin)} lost</span>`}
         </div>
       </div>
       <p class="bt-fact">💡 ${esc(c.fact)}</p>`;
