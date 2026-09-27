@@ -108,7 +108,7 @@ a { color: inherit; }
 
 /* ---------- Top bar ---------- */
 .topbar {
-  position: sticky; top: 0; z-index: 50;
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50;
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   padding: 14px clamp(16px, 4vw, 48px);
   background: var(--brand); color: var(--on-brand);

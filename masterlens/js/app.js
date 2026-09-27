@@ -134,6 +134,9 @@
     $('menuBtn').addEventListener('click', () => $('nav').classList.toggle('open'));
     matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { MLDashboard.render(); MLCurrency.refreshTheme(); });
 
+    // Open in a working state: show the sample until the user uploads their own filing.
+    try { loadDoc(MLSample.text, MLSample.name); } catch (e) {}
+
     window.addEventListener('hashchange', route);
     route();
   }
