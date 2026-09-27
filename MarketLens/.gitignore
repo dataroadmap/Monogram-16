@@ -1,0 +1,9 @@
+# Python toolbox: each laptop builds its own (python -m venv venv)
+venv/
+__pycache__/
+
+# Secrets: never commit. Copy .env.example to .env instead.
+.env
+
+# Raw SEC downloads: re-create with python src/ingest_edgar.py
+data/
