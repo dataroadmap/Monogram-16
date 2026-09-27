@@ -7,7 +7,7 @@ A browser-based 10-K analysis app with a dashboard, a chatbot, a currency conver
 It's a static site with no build step:
 
 ```bash
-cd masterlens
+cd demo
 python3 -m http.server 8000
 # open http://localhost:8000
 ```
@@ -27,7 +27,7 @@ You can also open `index.html` directly. The app loads Chart.js, pdf.js and the 
 ## Files
 
 ```
-masterlens/
+demo/
   index.html         app shell and views
   css/styles.css     theme (light and dark)
   js/parser.js       file-to-text, sections, line items, tone, risk themes
