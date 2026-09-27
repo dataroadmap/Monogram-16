@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MasterLens</title>
+<meta name="description" content="MasterLens reads SEC 10-K annual reports, builds an instant financial dashboard and lets you chat with the filing. Includes a currency converter and world clocks.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<script>
+  // Apply saved theme before paint to avoid a flash.
+  try { var t = localStorage.getItem('ml-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+</script>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="#home" aria-label="MasterLens home">
+    <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+      <circle cx="27" cy="27" r="18" fill="none" stroke="currentColor" stroke-width="6"/>
+      <line x1="40" y1="40" x2="56" y2="56" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+      <path d="M18 27 l7 7 l13 -15" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="brand-text">Master<b>Lens</b></span>
+  </a>
+  <nav class="nav" id="nav" aria-label="Main">
+    <a href="#home" data-route="home">Home</a>
+    <a href="#dashboard" data-route="dashboard">Dashboard</a>
+    <a href="#chat" data-route="chat">Ask AI</a>
+    <a href="#currency" data-route="currency">Currency</a>
+    <a href="#clocks" data-route="clocks">World Clock</a>
+  </nav>
+  <div class="topbar-actions">
+    <button class="icon-btn" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.39 5.39 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+    </button>
+    <button class="pill-btn" id="settingsBtn">Settings</button>
+    <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- ============ HOME ============ -->
+  <section class="view" id="view-home">
+    <div class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">10-K Intelligence Platform</span>
+        <h1>See every<br><span class="hl">10-K</span> clearly.</h1>
+        <p class="lead">Drop in an annual report and MasterLens extracts the numbers, maps the risks, scores the tone and lets you have a conversation with the filing.</p>
+        <div class="hero-cta">
+          <label class="btn btn-dark" for="fileInput">Upload a 10-K</label>
+          <button class="btn btn-ghost" id="loadSample">Try a sample report</button>
+        </div>
+        <p class="hint">PDF, HTML or TXT. Parsing happens in your browser — the file isn't uploaded anywhere.</p>
+      </div>
+      <div class="hero-card">
+        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Drop a 10-K file here or press Enter to browse">
+          <input type="file" id="fileInput" accept=".pdf,.htm,.html,.txt" hidden>
+          <div class="dz-icon">
+            <svg viewBox="0 0 48 48" width="56" height="56" aria-hidden="true"><path fill="currentColor" d="M28 4H12a4 4 0 0 0-4 4v32a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4V16zm-2 3.5L36.5 18H26zM14 26h20v3H14zm0 7h20v3H14zm0-14h8v3h-8z"/></svg>
+          </div>
+          <strong>Drag &amp; drop your 10-K</strong>
+          <span>or click to browse</span>
+          <div class="dz-progress" id="dzProgress" hidden><div class="bar"><i id="dzBar"></i></div><small id="dzStatus">Reading…</small></div>
+        </div>
+        <div class="doc-card" id="docCard" hidden>
+          <div class="doc-meta">
+            <span class="doc-badge">Loaded</span>
+            <h3 id="docName">—</h3>
+            <p id="docInfo">—</p>
+          </div>
+          <div class="doc-actions">
+            <a class="btn btn-dark btn-sm" href="#dashboard">Open dashboard</a>
+            <a class="btn btn-ghost btn-sm" href="#chat">Ask a question</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-grid">
+      <a class="feature" href="#dashboard">
+        <div class="f-icon">📊</div><h3>Instant dashboard</h3>
+        <p>Revenue, profit, margins, balance sheet and multi-year trends pulled straight from the filing.</p>
+      </a>
+      <a class="feature" href="#chat">
+        <div class="f-icon">💬</div><h3>Chat with the filing</h3>
+        <p>Ask anything. Answers cite the passages they came from. Add a Claude API key for full AI answers.</p>
+      </a>
+      <a class="feature" href="#currency">
+        <div class="f-icon">💱</div><h3>Currency converter</h3>
+        <p>Live exchange rates for 150+ currencies, plus the dashboard can show figures in any of them.</p>
+      </a>
+      <a class="feature" href="#clocks">
+        <div class="f-icon">🕰️</div><h3>World clocks</h3>
+        <p>Classic analog clocks for the markets you follow, with a time planner across locations.</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section class="view" id="view-dashboard" hidden>
+    <div class="empty-state" id="dashEmpty">
+      <h2>No report loaded yet</h2>
+      <p>Upload a 10-K or load the sample to populate the dashboard.</p>
+      <div class="hero-cta"><a class="btn btn-dark" href="#home">Upload a 10-K</a><button class="btn btn-ghost" data-action="sample">Load sample</button></div>
+    </div>
+
+    <div id="dashBody" hidden>
+      <div class="page-head">
+        <div>
+          <span class="eyebrow" id="dashFy">Fiscal year</span>
+          <h2 id="dashCompany">Company</h2>
+          <p class="muted" id="dashSub">—</p>
+        </div>
+        <div class="head-controls">
+          <label class="field-inline">Show figures in
+            <select id="dashCurrency"></select>
+          </label>
+        </div>
+      </div>
+
+      <div class="kpi-grid" id="kpiGrid"></div>
+
+      <div class="panel-grid">
+        <article class="panel span-2">
+          <header><h3>Revenue and net income by year</h3><span class="muted" id="trendUnit"></span></header>
+          <div class="legend" id="trendLegend"></div>
+          <div class="chart-box"><canvas id="trendChart" aria-label="Revenue and net income by fiscal year"></canvas></div>
+        </article>
+        <article class="panel">
+          <header><h3>Filing tone</h3><span class="muted">word-list sentiment</span></header>
+          <div class="gauge-wrap"><svg id="toneGauge" viewBox="0 0 200 138" role="img"></svg></div>
+          <ul class="tone-list" id="toneList"></ul>
+        </article>
+        <article class="panel">
+          <header><h3>Profitability</h3><span class="muted">latest year</span></header>
+          <div id="marginBars" class="hbars"></div>
+        </article>
+        <article class="panel">
+          <header><h3>Balance sheet</h3><span class="muted">latest year</span></header>
+          <div id="balanceStack"></div>
+        </article>
+        <article class="panel">
+          <header><h3>Top risk themes</h3><span class="muted">Item 1A mentions</span></header>
+          <div id="riskBars" class="hbars"></div>
+        </article>
+        <article class="panel span-3">
+          <header><h3>Filing map</h3><span class="muted">words per section · click to read</span></header>
+          <div id="sectionMap" class="section-map"></div>
+        </article>
+        <article class="panel span-3">
+          <header><h3>Extracted line items</h3><span class="muted">all years found</span></header>
+          <div class="table-wrap"><table class="data-table" id="metricTable"></table></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CHAT ============ -->
+  <section class="view" id="view-chat" hidden>
+    <div class="chat-layout">
+      <aside class="chat-side">
+        <h3>Conversation</h3>
+        <p class="muted small" id="chatDocLabel">No report loaded</p>
+        <div class="mode-box">
+          <span class="mode-dot" id="modeDot"></span>
+          <div><strong id="modeTitle">Offline mode</strong><p class="small muted" id="modeDesc">Answers come from passages found in the filing.</p></div>
+        </div>
+        <h4>Try asking</h4>
+        <div class="suggestions" id="suggestions"></div>
+        <button class="btn btn-ghost btn-sm" id="clearChat">Clear chat</button>
+      </aside>
+      <div class="chat-main">
+        <div class="chat-log" id="chatLog" aria-live="polite"></div>
+        <form class="chat-input" id="chatForm">
+          <textarea id="chatText" rows="1" placeholder="Ask about revenue, risks, strategy, segments…" aria-label="Your question"></textarea>
+          <button class="send-btn" type="submit" aria-label="Send">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M3 20.5 21 12 3 3.5 3 10l12 2-12 2z"/></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CURRENCY ============ -->
+  <section class="view" id="view-currency" hidden>
+    <div class="page-head">
+      <div><span class="eyebrow">Exchange</span><h2>Currency converter</h2><p class="muted" id="fxStatus">Loading rates…</p></div>
+    </div>
+    <div class="fx-layout">
+      <article class="panel fx-card">
+        <div class="fx-row">
+          <label class="fx-field"><span>Amount</span><input type="number" id="fxAmount" value="1000" min="0" step="any"></label>
+        </div>
+        <div class="fx-pair">
+          <label class="fx-field"><span>From</span><select id="fxFrom"></select></label>
+          <button class="swap-btn" id="fxSwap" aria-label="Swap currencies">⇄</button>
+          <label class="fx-field"><span>To</span><select id="fxTo"></select></label>
+        </div>
+        <div class="fx-result">
+          <div class="fx-big" id="fxResult">—</div>
+          <div class="muted" id="fxRate">—</div>
+        </div>
+        <div class="fx-trend">
+          <header><h3>Last 30 days</h3><span class="muted" id="fxTrendLabel"></span></header>
+          <div class="chart-box short"><canvas id="fxChart" aria-label="Exchange rate over the last 30 days"></canvas></div>
+        </div>
+      </article>
+      <article class="panel">
+        <header><h3>Quick view</h3><span class="muted" id="fxQuickLabel"></span></header>
+        <div class="fx-grid" id="fxGrid"></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ CLOCKS ============ -->
+  <section class="view" id="view-clocks" hidden>
+    <div class="page-head">
+      <div><span class="eyebrow">Time zones</span><h2>World clock</h2><p class="muted">Classic clocks for the places you work with.</p></div>
+      <div class="head-controls clock-add">
+        <select id="cityPicker" aria-label="Choose a city"></select>
+        <button class="btn btn-dark btn-sm" id="addCity">Add clock</button>
+      </div>
+    </div>
+
+    <article class="panel planner">
+      <div class="planner-head">
+        <div>
+          <h3>Time planner</h3>
+          <p class="muted small">Drag the slider to see what time it is everywhere at a chosen moment.</p>
+        </div>
+        <div class="planner-controls">
+          <label class="field-inline">Base
+            <select id="plannerBase"></select>
+          </label>
+          <button class="btn btn-ghost btn-sm" id="plannerLive">Back to live</button>
+        </div>
+      </div>
+      <div class="slider-wrap">
+        <input type="range" id="plannerSlider" min="0" max="1439" step="15" value="720" aria-label="Planned time">
+        <div class="slider-ticks"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+      </div>
+      <div class="planner-readout" id="plannerReadout">Live time</div>
+    </article>
+
+    <div class="clock-grid" id="clockGrid"></div>
+  </section>
+</main>
+
+<!-- Settings dialog -->
+<dialog id="settingsDialog">
+  <form method="dialog" class="dialog-body">
+    <h3>Settings</h3>
+    <label class="fx-field"><span>Claude API key (optional)</span>
+      <input type="password" id="apiKey" placeholder="sk-ant-…" autocomplete="off">
+    </label>
+    <p class="small muted">With a key, the chat sends your question plus the most relevant passages of the filing to the Claude API and streams back an answer. The key is kept only in this browser's local storage. For production use, route requests through your own backend instead of storing keys in the browser.</p>
+    <label class="check"><input type="checkbox" id="rememberKey" checked> Remember key on this device</label>
+    <div class="dialog-actions">
+      <button class="btn btn-ghost btn-sm" value="cancel">Cancel</button>
+      <button class="btn btn-dark btn-sm" id="saveSettings" value="save">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Section reader dialog -->
+<dialog id="readerDialog">
+  <div class="dialog-body reader">
+    <div class="reader-head"><h3 id="readerTitle">Section</h3><button class="icon-btn" id="readerClose" aria-label="Close">✕</button></div>
+    <div class="reader-text" id="readerText"></div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="js/sample.js"></script>
+<script src="js/parser.js"></script>
+<script src="js/currency.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/clocks.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
