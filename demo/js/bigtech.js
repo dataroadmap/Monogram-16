@@ -160,8 +160,31 @@
     render();
   }
 
+  // ------------------------------------------------ home page live ticker
+  const pageOpened = Date.now();
+  let homeTimer = null;
+  const usd = (v, d = 0) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: d }).format(v);
+  const TOP = [...COMPANIES].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+
+  function buildHome() {
+    $('tkRows').innerHTML = TOP.map((c, i) => `
+      <div class="tk-row">
+        <span class="tk-name">${esc(c.name.replace(' (Google)', ''))}</span>
+        <span class="tk-rate">${usd(perSecond(c))}/sec</span>
+        <span class="tk-amt" id="tkAmt${i}">$0</span>
+      </div>`).join('');
+  }
+  function tickHome() {
+    const secs = (Date.now() - pageOpened) / 1000;
+    const all = COMPANIES.reduce((s, c) => s + perSecond(c), 0);
+    $('tkTotal').textContent = usd(all * secs);
+    TOP.forEach((c, i) => { $('tkAmt' + i).textContent = usd(perSecond(c) * secs); });
+  }
+
   window.MLBigTech = {
     init,
+    startHome() { if (!$('tkRows').children.length) buildHome(); clearInterval(homeTimer); tickHome(); homeTimer = setInterval(tickHome, 100); },
+    stopHome() { clearInterval(homeTimer); },
     onShow() { clearInterval(timer); timer = setInterval(tickCounter, 100); },
     onHide() { clearInterval(timer); },
   };
