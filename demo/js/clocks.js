@@ -1,4 +1,4 @@
-/* MasterLens — world clocks (traditional analog faces) and time planner. */
+/* MarketLens — world clocks (traditional analog faces) and time planner. */
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
@@ -100,7 +100,7 @@
       <circle cx="100" cy="100" r="71" fill="none" stroke="#2a2118" stroke-width=".4" opacity=".4"/>
       ${ticks.join('')}
       ${numerals}
-      <text x="100" y="80" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="9" font-style="italic" fill="#6b5a3a">MasterLens</text>
+      <text x="100" y="80" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="9" font-style="italic" fill="#6b5a3a">MarketLens</text>
       <text class="ampm" x="100" y="130" text-anchor="middle" font-family="Montserrat, sans-serif" font-size="7" font-weight="700" letter-spacing="1.5" fill="#8a7650">AM</text>
       <g class="h-hand">
         <path d="M100 118 L97.2 100 L96 78 Q100 66 104 78 L102.8 100 Z" fill="#1d1710"/>

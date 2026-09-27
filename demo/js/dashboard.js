@@ -1,4 +1,4 @@
-/* MasterLens — dashboard view. */
+/* MarketLens — dashboard view. */
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);

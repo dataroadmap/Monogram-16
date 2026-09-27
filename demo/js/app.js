@@ -1,4 +1,4 @@
-/* MasterLens — app shell: routing, theme, file loading, settings. */
+/* MarketLens — app shell: routing, theme, file loading, settings. */
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);

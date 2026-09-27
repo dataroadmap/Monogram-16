@@ -1,4 +1,4 @@
-# MasterLens
+# MarketLens
 
 A browser-based 10-K analysis app with a dashboard, a chatbot, a currency converter and world clocks.
 

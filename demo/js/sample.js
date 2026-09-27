@@ -17,7 +17,7 @@ HELIOS GRID SYSTEMS, INC.
 Delaware    84-5521907
 (State of incorporation)    (I.R.S. Employer Identification No.)
 
-This document is a fictional sample prepared for demonstrating the MasterLens application. It does not describe any real company.
+This document is a fictional sample prepared for demonstrating the MarketLens application. It does not describe any real company.
 
 TABLE OF CONTENTS
 Item 1. Business    3

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MasterLens</title>
-<meta name="description" content="MasterLens reads SEC 10-K annual reports, builds an instant financial dashboard and lets you chat with the filing. Includes a currency converter and world clocks.">
+<title>MarketLens</title>
+<meta name="description" content="MarketLens shows how the world’s biggest companies make money, using their official annual reports. Live counters, simple charts and answers to your questions.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
@@ -17,18 +17,18 @@
 <body>
 
 <header class="topbar">
-  <a class="brand" href="#home" aria-label="MasterLens home">
+  <a class="brand" href="#home" aria-label="MarketLens home">
     <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
       <circle cx="27" cy="27" r="18" fill="none" stroke="currentColor" stroke-width="6"/>
       <line x1="40" y1="40" x2="56" y2="56" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
       <path d="M18 27 l7 7 l13 -15" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
-    <span class="brand-text">Master<b>Lens</b></span>
+    <span class="brand-text">Market<b>Lens</b></span>
   </a>
   <nav class="nav" id="nav" aria-label="Main">
     <a href="#home" data-route="home">Home</a>
     <a href="#bigtech" data-route="bigtech">Big Tech</a>
-    <a href="#dashboard" data-route="dashboard">10-K Analyzer</a>
+    <a href="#dashboard" data-route="dashboard">Report Analyzer</a>
     <a href="#chat" data-route="chat">Ask AI</a>
     <a href="#currency" data-route="currency">Currency</a>
     <a href="#clocks" data-route="clocks">World Clock</a>
@@ -49,14 +49,14 @@
   <section class="view" id="view-home">
     <div class="hero">
       <div class="hero-copy">
-        <span class="eyebrow">10-K Intelligence Platform</span>
-        <h1>See every<br><span class="hl">10-K</span> clearly.</h1>
-        <p class="lead">See how the biggest tech companies make money, using the numbers from their own 10-K annual reports. Then open any filing and ask it questions.</p>
+        <span class="eyebrow">Market insight for everyone</span>
+        <h1>Follow<br>the <span class="hl">money.</span></h1>
+        <p class="lead">Apple, Amazon, Google and Nvidia earn thousands of dollars every second. MarketLens shows you where it comes from, in simple charts, live counters and plain English.</p>
         <div class="hero-cta">
-          <a class="btn btn-dark" href="#bigtech">Explore Big Tech</a>
-          <a class="btn btn-ghost" href="#dashboard">Analyze a 10-K</a>
+          <a class="btn btn-dark" href="#bigtech">Start exploring</a>
+          <a class="btn btn-ghost" href="#chat">Ask a question</a>
         </div>
-        <p class="hint">Every number comes from the companies’ own 10-K annual reports.</p>
+        <p class="hint">Free · No sign-up · Numbers straight from official company reports</p>
       </div>
       <div class="hero-card">
         <a class="ticker-card" href="#bigtech" aria-label="Open Big Tech in numbers">
@@ -67,7 +67,7 @@
           <div class="tk-total-label">Big Tech has sold</div>
           <div class="tk-total" id="tkTotal">$0</div>
           <div class="tk-rows" id="tkRows"></div>
-          <div class="tk-foot">Based on each company’s yearly revenue from its 10-K, spread evenly over every second of the year. <b>See all 10 companies →</b></div>
+          <div class="tk-foot">Based on each company’s yearly sales from its official annual report, spread evenly over every second of the year. <b>See all 10 companies →</b></div>
         </a>
       </div>
     </div>
@@ -78,8 +78,8 @@
         <p>Compare Apple, Amazon, Google and more: who sells the most, who keeps the most, and who grows fastest.</p>
       </a>
       <a class="feature" href="#chat">
-        <div class="f-icon">💬</div><h3>Chat with the filing</h3>
-        <p>Ask anything. Answers cite the passages they came from. Add a Claude API key for full AI answers.</p>
+        <div class="f-icon">💬</div><h3>Ask anything</h3>
+        <p>Ask questions about a company in plain words and get answers that show where they came from.</p>
       </a>
       <a class="feature" href="#currency">
         <div class="f-icon">💱</div><h3>Currency converter</h3>
@@ -96,7 +96,7 @@
   <section class="view" id="view-bigtech" hidden>
     <div class="page-head">
       <div>
-        <span class="eyebrow">Beginner view · from 10-K filings</span>
+        <span class="eyebrow">From official annual reports</span>
         <h2>Big Tech in numbers</h2>
         <p class="muted">Ten well-known US tech companies. Pick a question, then click a company to learn more.</p>
       </div>

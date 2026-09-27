@@ -1,4 +1,4 @@
-/* MasterLens — 10-K reading and analysis.
+/* MarketLens — 10-K reading and analysis.
    Turns PDF / HTML / text into plain text, then extracts sections,
    financial line items, tone and risk themes. Everything runs in the browser. */
 (function () {

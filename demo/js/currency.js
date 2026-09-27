@@ -1,4 +1,4 @@
-/* MasterLens — currency rates and converter view. */
+/* MarketLens — currency rates and converter view. */
 (function () {
   'use strict';
 
