@@ -3,7 +3,7 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const ROUTES = ['home', 'bigtech', 'dashboard', 'chat', 'currency', 'clocks'];
-  const hooks = { bigtech: MLBigTech, dashboard: MLDashboard, chat: MLChat, currency: MLCurrency, clocks: MLClocks };
+  const hooks = { home: { onShow: () => MLBigTech.startHome(), onHide: () => MLBigTech.stopHome() }, bigtech: MLBigTech, dashboard: MLDashboard, chat: MLChat, currency: MLCurrency, clocks: MLClocks };
   let current = null;
 
   // ---------------------------------------------------------------- routing
@@ -45,30 +45,19 @@
     if (doc.words < 200) throw new Error('That file has very little readable text. If it is a scanned PDF, try the HTML version from SEC EDGAR.');
     MLDashboard.setDoc(doc);
     MLChat.setDoc(doc);
-    $('docCard').hidden = false;
-    $('docName').textContent = doc.meta.company;
-    const found = Object.keys(doc.metrics).length;
-    $('docInfo').textContent = `${name} · FY${doc.meta.fiscalYear} · ${doc.words.toLocaleString()} words · ${doc.sections.length} sections · ${found} line items`;
     return doc;
   }
 
   async function handleFile(file) {
     if (!file) return;
-    const prog = $('dzProgress'), bar = $('dzBar'), status = $('dzStatus');
-    prog.hidden = false; bar.style.width = '5%'; status.textContent = `Reading ${file.name}…`;
+    toast(`Reading ${file.name}…`);
     try {
-      const text = await MLParser.fileToText(file, p => { bar.style.width = Math.round(5 + p * 85) + '%'; status.textContent = `Reading pages… ${Math.round(p * 100)}%`; });
-      bar.style.width = '95%'; status.textContent = 'Analyzing…';
-      await new Promise(r => setTimeout(r, 30));
+      const text = await MLParser.fileToText(file, p => toast(`Reading pages… ${Math.round(p * 100)}%`));
       const doc = loadDoc(text, file.name);
-      bar.style.width = '100%'; status.textContent = 'Done';
       toast(`Loaded ${doc.meta.company}`);
-      setTimeout(() => { location.hash = '#dashboard'; }, 400);
+      location.hash = '#dashboard';
     } catch (err) {
-      status.textContent = err.message || 'Could not read that file.';
-      toast('Could not read that file');
-    } finally {
-      setTimeout(() => { prog.hidden = true; }, 2500);
+      toast(err.message || 'Could not read that file.');
     }
   }
 
@@ -113,17 +102,11 @@
     MLClocks.init();
     MLCurrency.loadRates();
 
-    const dz = $('dropzone'), input = $('fileInput');
-    dz.addEventListener('click', () => input.click());
-    dz.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } });
-    input.addEventListener('click', e => e.stopPropagation());
+    const input = $('fileInput');
     input.addEventListener('change', () => { handleFile(input.files[0]); input.value = ''; });
-    ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
-    ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
-    dz.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
-    // Allow dropping anywhere on the home view.
+    // Drop a 10-K anywhere while the 10-K Analyzer is open.
     document.addEventListener('dragover', e => e.preventDefault());
-    document.addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer.files[0] && current === 'home') handleFile(e.dataTransfer.files[0]); });
+    document.addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer.files[0] && current === 'dashboard') handleFile(e.dataTransfer.files[0]); });
 
     document.querySelectorAll('[data-action="sample"]').forEach(b => b.addEventListener('click', loadSample));
     $('themeToggle').addEventListener('click', toggleTheme);
