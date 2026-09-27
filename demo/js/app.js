@@ -2,8 +2,8 @@
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
-  const ROUTES = ['home', 'dashboard', 'chat', 'currency', 'clocks'];
-  const hooks = { dashboard: MLDashboard, chat: MLChat, currency: MLCurrency, clocks: MLClocks };
+  const ROUTES = ['home', 'bigtech', 'dashboard', 'chat', 'currency', 'clocks'];
+  const hooks = { bigtech: MLBigTech, dashboard: MLDashboard, chat: MLChat, currency: MLCurrency, clocks: MLClocks };
   let current = null;
 
   // ---------------------------------------------------------------- routing
@@ -108,6 +108,7 @@
   function init() {
     MLCurrency.initView();
     MLDashboard.init();
+    MLBigTech.init();
     MLChat.init();
     MLClocks.init();
     MLCurrency.loadRates();
@@ -124,7 +125,6 @@
     document.addEventListener('dragover', e => e.preventDefault());
     document.addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer.files[0] && current === 'home') handleFile(e.dataTransfer.files[0]); });
 
-    $('loadSample').addEventListener('click', loadSample);
     document.querySelectorAll('[data-action="sample"]').forEach(b => b.addEventListener('click', loadSample));
     $('themeToggle').addEventListener('click', toggleTheme);
     $('settingsBtn').addEventListener('click', openSettings);

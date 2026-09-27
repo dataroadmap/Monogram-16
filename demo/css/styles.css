@@ -381,6 +381,71 @@ input[type="range"] { width: 100%; accent-color: var(--brand-deep); height: 28px
 /* numerals on clock face */
 .roman { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; fill: var(--clock-ink); }
 
+
+/* ---------- Big Tech (beginner view) ---------- */
+.bt-counter {
+  display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;
+  background: var(--ink); color: #fff; border-radius: var(--radius); padding: 22px 26px; margin-bottom: 18px;
+}
+.bt-counter > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.bt-c-label { font-size: 14px; color: #c9c9c9; }
+.bt-c-label b { color: var(--brand); }
+.bt-c-big { font-size: clamp(30px, 5vw, 52px); font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--brand); overflow-wrap: anywhere; }
+.bt-c-side { text-align: right; }
+.bt-c-side b { font-size: 24px; font-variant-numeric: tabular-nums; }
+.bt-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+.bt-tab {
+  font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; padding: 11px 18px; border-radius: 999px;
+  border: 2px solid var(--border-strong); background: var(--surface); color: var(--text); transition: background .2s, border-color .2s;
+}
+.bt-tab:hover { border-color: var(--brand-deep); }
+.bt-tab[aria-selected="true"] { background: var(--brand); border-color: var(--brand); color: var(--ink); }
+.bt-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 18px; align-items: start; }
+.bt-explain { background: var(--brand-soft); border-radius: 12px; padding: 12px 14px; font-size: 14px; margin-bottom: 14px; }
+.bt-chart { display: flex; flex-direction: column; gap: 6px; }
+.bt-row {
+  display: grid; grid-template-columns: 26px 150px 1fr 110px; gap: 10px; align-items: center; width: 100%;
+  font: inherit; color: var(--text); background: transparent; border: 1px solid transparent; border-radius: 12px;
+  padding: 8px 10px; cursor: pointer; text-align: left; transition: background .15s, border-color .15s;
+}
+.bt-row:hover { background: var(--surface-2); }
+.bt-row.on { background: var(--surface-2); border-color: var(--brand-deep); }
+.bt-row:focus-visible, .bt-tab:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+.bt-rank { font-size: 12px; font-weight: 800; color: var(--text-3); text-align: center; }
+.bt-name { font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bt-track { display: block; height: 18px; }
+.bt-bar { display: block; height: 100%; border-radius: 0 4px 4px 0; background: var(--series-1); transition: width .5s ease; }
+.bt-row.on .bt-bar { background: var(--brand-deep); }
+.bt-bar.neg, .bt-row.on .bt-bar.neg { background: var(--bad); }
+.bt-val { font-weight: 800; font-size: 14px; text-align: right; font-variant-numeric: tabular-nums; }
+.bt-detail { display: flex; flex-direction: column; gap: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 84px); }
+.bt-detail h3 { font-size: 26px; font-weight: 800; margin-top: 4px; }
+.bt-sells { color: var(--text-2); }
+.bt-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bt-facts div { background: var(--surface-2); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; }
+.bt-facts span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-2); }
+.bt-facts b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.neg-text { color: var(--bad); }
+.bt-hundred p { font-size: 14px; margin-bottom: 8px; }
+.bt-split { display: flex; height: 28px; border-radius: 6px; overflow: hidden; gap: 2px; }
+.bt-split span { display: block; height: 100%; }
+.bt-split .kept, .bt-split-legend i.kept { background: var(--series-3); }
+.bt-split .spent, .bt-split-legend i.spent { background: var(--grid); }
+.bt-split-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--text-2); margin-top: 8px; }
+.bt-split-legend span { display: inline-flex; gap: 6px; align-items: center; }
+.bt-split-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.bt-fact { background: var(--surface-2); border-radius: 12px; padding: 12px 14px; font-size: 14px; }
+.bt-source { margin-top: 16px; max-width: 70ch; }
+@media (max-width: 900px) {
+  .bt-layout { grid-template-columns: 1fr; }
+  .bt-detail { position: static; }
+}
+@media (max-width: 560px) {
+  .bt-row { grid-template-columns: 20px 90px 1fr 76px; gap: 6px; padding: 8px 4px; }
+  .bt-name, .bt-val { font-size: 12.5px; }
+  .bt-c-side { text-align: left; }
+}
+
 /* ---------- Dialogs / toast ---------- */
 dialog { border: 0; border-radius: 22px; padding: 0; background: var(--surface); color: var(--text); box-shadow: var(--shadow-lg); width: min(520px, calc(100vw - 32px)); }
 dialog::backdrop { background: rgba(0,0,0,.45); backdrop-filter: blur(3px); }
@@ -394,6 +459,11 @@ dialog::backdrop { background: rgba(0,0,0,.45); backdrop-filter: blur(3px); }
 .toast.show { transform: translate(-50%, 0); }
 
 /* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+  .menu-btn { display: grid; }
+  .nav { position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; background: var(--brand); padding: 8px 16px 16px; display: none; box-shadow: 0 10px 20px rgba(0,0,0,.12); }
+  .nav.open { display: flex; }
+}
 @media (max-width: 1180px) {
   .kpi-grid { grid-template-columns: repeat(3, 1fr); }
 }
@@ -402,10 +472,7 @@ dialog::backdrop { background: rgba(0,0,0,.45); backdrop-filter: blur(3px); }
   .feature-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 860px) {
-  .menu-btn { display: grid; }
   .pill-btn { padding: 8px 12px; font-size: 11px; }
-  .nav { position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; background: var(--brand); padding: 8px 16px 16px; display: none; box-shadow: 0 10px 20px rgba(0,0,0,.12); }
-  .nav.open { display: flex; }
   .hero { grid-template-columns: 1fr; gap: 28px; }
   .chat-layout { grid-template-columns: 1fr; height: auto; }
   .chat-side { order: 2; }
