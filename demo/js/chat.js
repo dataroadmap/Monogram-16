@@ -1,4 +1,4 @@
-/* MasterLens — chat with the filing.
+/* MarketLens — chat with the filing.
    Offline: BM25 passage search + figures extracted by the parser.
    With a Claude API key: the question, the most relevant passages and the
    extracted figures are sent to the Claude API and the answer is streamed. */
@@ -157,7 +157,7 @@
       `${d.label}: ${doc.metrics[d.key].map((v, i) => `FY${doc.years[i]}=${v}`).join(', ')}`).join('\n');
   }
 
-  const SYSTEM = `You are MasterLens, an analyst assistant that answers questions about a single SEC Form 10-K annual report.
+  const SYSTEM = `You are MarketLens, an analyst assistant that answers questions about a single SEC Form 10-K annual report.
 Ground every answer in the excerpts and extracted figures you are given. When the excerpts don't contain the answer, say so plainly and suggest what section of the 10-K would cover it, rather than guessing.
 Keep answers concise and skimmable: a direct answer first, then supporting detail as short bullet points where helpful. Quote key phrases from the filing when they matter, and name the section (for example "Item 7") you drew from.
 Figures you are given are in the filing's reporting unit; state the unit when you quote them. This is informational analysis, not investment advice.`;
@@ -280,7 +280,7 @@ Figures you are given are in the filing's reporting unit; state the unit when yo
     $('chatLog').innerHTML = '';
     addMsg('bot', doc
       ? `<p>Hi! I've read <b>${esc(doc.meta.company)}</b>'s 10-K for fiscal ${doc.meta.fiscalYear} (${doc.words.toLocaleString()} words, ${doc.sections.length} sections). What would you like to know?</p>`
-      : `<p>Hi, I'm MasterLens. Load a 10-K and I'll answer questions about it — financials, risks, strategy, anything in the filing.</p>`);
+      : `<p>Hi, I'm MarketLens. Load a 10-K and I'll answer questions about it — financials, risks, strategy, anything in the filing.</p>`);
   }
 
   function init() {

@@ -1,4 +1,4 @@
-/* MasterLens — "Big Tech" beginner view.
+/* MarketLens — "Big Tech" beginner view.
    Figures are from each company's Form 10-K, rounded to billions of US dollars.
    FY = the company's own fiscal year (not always the calendar year). */
 (function () {
