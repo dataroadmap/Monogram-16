@@ -1,2 +1,0 @@
-# shelteriq
-Intial-Design
