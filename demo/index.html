@@ -27,7 +27,8 @@
   </a>
   <nav class="nav" id="nav" aria-label="Main">
     <a href="#home" data-route="home">Home</a>
-    <a href="#dashboard" data-route="dashboard">Dashboard</a>
+    <a href="#bigtech" data-route="bigtech">Big Tech</a>
+    <a href="#dashboard" data-route="dashboard">10-K Analyzer</a>
     <a href="#chat" data-route="chat">Ask AI</a>
     <a href="#currency" data-route="currency">Currency</a>
     <a href="#clocks" data-route="clocks">World Clock</a>
@@ -53,7 +54,7 @@
         <p class="lead">Drop in an annual report and MasterLens extracts the numbers, maps the risks, scores the tone and lets you have a conversation with the filing.</p>
         <div class="hero-cta">
           <label class="btn btn-dark" for="fileInput">Upload a 10-K</label>
-          <button class="btn btn-ghost" id="loadSample">Try a sample report</button>
+          <a class="btn btn-ghost" href="#bigtech">Explore Big Tech</a>
         </div>
         <p class="hint">PDF, HTML or TXT. Parsing happens in your browser — the file isn't uploaded anywhere.</p>
       </div>
@@ -82,9 +83,9 @@
     </div>
 
     <div class="feature-grid">
-      <a class="feature" href="#dashboard">
-        <div class="f-icon">📊</div><h3>Instant dashboard</h3>
-        <p>Revenue, profit, margins, balance sheet and multi-year trends pulled straight from the filing.</p>
+      <a class="feature" href="#bigtech">
+        <div class="f-icon">🏆</div><h3>Big Tech in numbers</h3>
+        <p>Compare Apple, Amazon, Google and more: who sells the most, who keeps the most, and who grows fastest.</p>
       </a>
       <a class="feature" href="#chat">
         <div class="f-icon">💬</div><h3>Chat with the filing</h3>
@@ -99,6 +100,49 @@
         <p>Classic analog clocks for the markets you follow, with a time planner across locations.</p>
       </a>
     </div>
+  </section>
+
+  <!-- ============ BIG TECH ============ -->
+  <section class="view" id="view-bigtech" hidden>
+    <div class="page-head">
+      <div>
+        <span class="eyebrow">Beginner view · from 10-K filings</span>
+        <h2>Big Tech in numbers</h2>
+        <p class="muted">Ten well-known US tech companies. Pick a question, then click a company to learn more.</p>
+      </div>
+      <div class="head-controls">
+        <label class="field-inline" for="btCurrency">Show money in
+          <select id="btCurrency"></select>
+        </label>
+      </div>
+    </div>
+
+    <div class="bt-counter" aria-live="off">
+      <div>
+        <span class="bt-c-label">Since you picked it, <b id="btCounterName">Apple</b> has made</span>
+        <span class="bt-c-big" id="btSince">$0</span>
+        <span class="bt-c-label">in sales</span>
+      </div>
+      <div class="bt-c-side"><span class="bt-c-label">That’s about</span><b id="btPerSec">—</b><span class="bt-c-label">every second</span></div>
+    </div>
+
+    <div class="bt-tabs" id="btTabs" role="tablist" aria-label="Choose a question">
+      <button class="bt-tab" role="tab" data-m="revenue">💰 Who sells the most?</button>
+      <button class="bt-tab" role="tab" data-m="profit">🏦 Who keeps the most?</button>
+      <button class="bt-tab" role="tab" data-m="margin">🍕 Profit per $100</button>
+      <button class="bt-tab" role="tab" data-m="growth">🚀 Who grew fastest?</button>
+      <button class="bt-tab" role="tab" data-m="perEmployee">👩‍💻 Per employee</button>
+    </div>
+
+    <div class="bt-layout">
+      <article class="panel">
+        <header><h3 id="btQuestion">Who sells the most?</h3><span class="muted">click a bar</span></header>
+        <p class="bt-explain" id="btExplain"></p>
+        <div class="bt-chart" id="btChart"></div>
+      </article>
+      <article class="panel bt-detail" id="btDetail"></article>
+    </div>
+    <p class="small muted bt-source">Source: each company’s Form 10-K annual report for its most recent full fiscal year as of early 2025, rounded. Companies end their fiscal years in different months, shown on each card. Currency conversion uses today’s exchange rate.</p>
   </section>
 
   <!-- ============ DASHBOARD ============ -->
@@ -283,6 +327,7 @@
 <script src="js/parser.js"></script>
 <script src="js/currency.js"></script>
 <script src="js/dashboard.js"></script>
+<script src="js/bigtech.js"></script>
 <script src="js/chat.js"></script>
 <script src="js/clocks.js"></script>
 <script src="js/app.js"></script>
