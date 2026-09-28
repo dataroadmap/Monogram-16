@@ -41,6 +41,17 @@ python -m pytest -q                              :: tests (need TEST_DATABASE_UR
 Downloads are cached in `data/raw/sec/`. Running `ingest` again reuses the cache. Use `--refresh` to pull new filings.
 If you edit `config/metrics.yaml`, run `python -m marketlens build` to rebuild the tables without downloading again.
 
+## Raw SEC downloads (course Session 1)
+
+Two standalone scripts, run from the MarketLens folder with the venv active:
+
+```bat
+python src\ingest_edgar.py        :: filing history, 10-K list and XBRL facts -> data\raw\<TICKER>\
+python src\download_10k_html.py   :: the 10-K documents themselves -> data\raw\<TICKER>\10k\
+```
+
+`download_10k_html.py` reads each `10k_filings_index.json` written by `ingest_edgar.py` and skips files already on disk.
+
 ## Database (PostgreSQL, database `marketlens`)
 
 | Table / view | Grain | Use |
